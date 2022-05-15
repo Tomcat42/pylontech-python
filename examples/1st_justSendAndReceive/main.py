@@ -7,9 +7,8 @@
 """
 from libPylon import Pylontech_rs485
 
-if __name__ == '__main__':
-    # device = 'COM3'
-    device = '/dev/ttyUSB0'
+def do_some_stuff(device='/dev/ttyUSB0'):
+    # on Windows: device = 'COM3'
     pylon = Pylontech_rs485(device=device)
     pylon.send(b'2002464FC0048520')  # get protocol version
     raws = pylon.recv()
@@ -48,4 +47,5 @@ if __name__ == '__main__':
     pylon.send(b'20024696C0040202')  # get software version - get data of Battery 1
     raws = pylon.recv()
 
-
+if __name__ == '__main__':
+    do_some_stuff()
