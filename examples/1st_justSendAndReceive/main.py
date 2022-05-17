@@ -14,11 +14,14 @@ sys.path.insert(0, '../../pylon')
 
 from pylontech import Pylontech_rs485
 from pylontech_decode import PylontechDecode
+from pylontech_encode import PylontechEncode
 
 if __name__ == '__main__':
     # device = 'COM3'
     device = '/dev/ttyUSB0'
     pylon = Pylontech_rs485(device=device, baud=115200)
+
+    e = PylontechEncode()
     pylon.send(b'2002464FC0048520')  # get protocol version
     raws = pylon.recv()
 
@@ -56,11 +59,23 @@ if __name__ == '__main__':
     print(
         d.decodeAnalogValue())
 
-    pylon.send(b'20034642C0040300')  # get Analog Value - get data of Battery 3
+    print('huhu')
+
+    pylon.send(b'20074642C0040700')
     raws = pylon.recv()
     print(d.decode_header(raws[0]))
     print(
         d.decodeAnalogValue())
+
+    for batt in range(0,7,1):
+        pylon.send(e.analogValue(BattNumber=batt))  # get Analog Value - get data of Battery 3
+        raws = pylon.recv()
+        d.decode_header(raws[0])
+        print(d.decodeAnalogValue())
+
+
+    sys.exit(0)
+
 
     # pylon.send(b'20024693C0040201')  # get module SN number - get data of Battery 1
     # raws = pylon.recv()
