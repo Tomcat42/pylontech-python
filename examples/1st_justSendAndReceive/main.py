@@ -7,6 +7,10 @@
 """
 # from libPylon import Pylontech_rs485
 from webencodings import decode
+import sys
+import os
+
+sys.path.insert(0, '../../pylon')
 
 from pylontech import Pylontech_rs485
 from pylontech_decode import PylontechDecode
