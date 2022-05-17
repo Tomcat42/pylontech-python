@@ -48,27 +48,8 @@ if __name__ == '__main__':
     print(d.decode_header(raws[0]))
     print(d.decodeChargeDischargeManagementInfo())
 
-    pylon.send(b'20024642C0040202')  # get Analog Value - get data of Battery 2
-    raws = pylon.recv()
-    print(d.decode_header(raws[0]))
-    print(        d.decodeAnalogValue())
-
-    pylon.send(b'20024642C0040201')  # get Analog Value - get data of Battery 1
-    raws = pylon.recv()
-    print(d.decode_header(raws[0]))
-    print(
-        d.decodeAnalogValue())
-
-    print('huhu')
-
-    pylon.send(b'20074642C0040700')
-    raws = pylon.recv()
-    print(d.decode_header(raws[0]))
-    print(
-        d.decodeAnalogValue())
-
     for batt in range(0,7,1):
-        pylon.send(e.analogValue(BattNumber=batt))  # get Analog Value - get data of Battery 3
+        pylon.send(e.analogValue(BattNumber=batt))  # get Analog Value
         raws = pylon.recv()
         d.decode_header(raws[0])
         print(d.decodeAnalogValue())
