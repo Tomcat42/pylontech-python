@@ -36,6 +36,8 @@ if __name__ == '__main__':
     pylon.send(e.getManufacturerInfo())
     raws = pylon.recv()
     print(raws)
+    d.decode_header(raws[0])
+    print(d.decodeManufacturerInfo())
 
     pylon.send(b'20024647C0040000')  # get system parameter, fixed point
     raws = pylon.recv()

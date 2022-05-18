@@ -24,6 +24,17 @@ class PylontechDecode:
             print('wrong decoder selected')
         return self.data
 
+    def decodeManufacturerInfo(self):
+        if(self.data['ID'] == 0x46):
+            payload=self.data['PAYLOAD']
+            print(payload[0:20].decode("ASCII"))
+            self.data['BatteryName'] = bytes.fromhex(payload[0:20].decode("ASCII")).decode("ASCII").rstrip('\x00')
+            self.data['SoftwareVersion'] = int(payload[20:24], 16)
+            self.data['ManufacturerName'] = bytes.fromhex(payload[24:64].decode("ASCII")).decode("ASCII").rstrip('\x00')
+        else:
+            print('wrong decoder selected')
+        return self.data
+
 
     def decodeChargeDischargeManagementInfo(self):
         if(self.data['ID'] == 0x46):
