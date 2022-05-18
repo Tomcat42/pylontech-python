@@ -14,8 +14,16 @@ class PylontechDecode:
         header['RTN'] = int(rawdata[6:8], 16)
         header['LENGTH'] = int(rawdata[8:12], 16)&0x0fff
         header['PAYLOAD'] = rawdata[12:12 + header['LENGTH']]
-        self.data=header
+        self.data = header
         return header
+
+    def decodePotocolVersion(self):
+        if(self.data['ID'] == 0x46):
+            pass # no payload, Version info is in VER field of header
+        else:
+            print('wrong decoder selected')
+        return self.data
+
 
     def decodeChargeDischargeManagementInfo(self):
         if(self.data['ID'] == 0x46):

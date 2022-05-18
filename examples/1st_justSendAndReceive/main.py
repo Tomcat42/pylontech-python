@@ -22,12 +22,20 @@ if __name__ == '__main__':
     pylon = Pylontech_rs485(device=device, baud=115200)
 
     e = PylontechEncode()
-    pylon.send(b'2002464FC0048520')  # get protocol version
-    raws = pylon.recv()
+    d = PylontechDecode()
 
-    pylon.send(b'20024651C0040000')  # get manufactory info
+    #pylon.send(b'2002464FC0048520')  # get protocol version
+    pylon.send(e.getProtocolVersion())  # get protocol version
     raws = pylon.recv()
+    print(raws)
+    # TODO: Bug without payload recv returns None
+    #d.decode_header(raws[0])
+    #print(d.decodePotocolVersion())
 
+    #pylon.send(b'20024651C0040000')  # get manufactory info
+    pylon.send(e.getManufacturerInfo())
+    raws = pylon.recv()
+    print(raws)
 
     pylon.send(b'20024647C0040000')  # get system parameter, fixed point
     raws = pylon.recv()
@@ -39,7 +47,6 @@ if __name__ == '__main__':
 
     pylon.send(b'20024692C0040201')  # get charge, discharge management info - get data of Battery 1
     raws = pylon.recv()
-    d = PylontechDecode()
     print(d.decode_header(raws[0]))
     print(d.decodeChargeDischargeManagementInfo())
 
@@ -48,7 +55,8 @@ if __name__ == '__main__':
     print(d.decode_header(raws[0]))
     print(d.decodeChargeDischargeManagementInfo())
 
-    for batt in range(0,7,1):
+    packCount=7
+    for batt in range(0,packCount,1):
         pylon.send(e.analogValue(BattNumber=batt))  # get Analog Value
         raws = pylon.recv()
         d.decode_header(raws[0])
