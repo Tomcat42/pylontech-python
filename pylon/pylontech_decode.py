@@ -53,6 +53,11 @@ class PylontechDecode:
             print('wrong decoder selected')
         return self.data
 
+    def decodeAlarmInfo(self):
+        if(self.data['ID'] == 0x46):
+            payload=self.data['PAYLOAD']
+        # TODO implement
+
     def decodeAnalogValue(self):
         if(self.data['ID'] == 0x46):
             payload=self.data['PAYLOAD']
@@ -93,9 +98,6 @@ class PylontechDecode:
                 i = i + 6
                 self.data['ModuleTotalCapacity'] = int(payload[i:i + 6], 16) / 1000.0
                 i = i + 6
-
-
-
         else:
             print('wrong decoder selected')
         return self.data

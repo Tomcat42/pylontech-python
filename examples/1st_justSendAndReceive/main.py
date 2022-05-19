@@ -32,18 +32,24 @@ if __name__ == '__main__':
     print(d.decodePotocolVersion())
 
     #pylon.send(b'20024651C0040000')  # get manufactory info
-    for i in range(0,15):
-        pylon.send(e.getManufacturerInfo(battNumber=i))
-        raws = pylon.recv()
-        print(raws)
-        d.decode_header(raws[0])
-        print(d.decodeManufacturerInfo())
+    #for i in range(0,15):
+    #    pylon.send(e.getManufacturerInfo(battNumber=i))
+    #    raws = pylon.recv()
+    #    print(raws)
+    #    d.decode_header(raws[0])
+    #    print(d.decodeManufacturerInfo())
 
     pylon.send(b'20024647C0040000')  # get system parameter, fixed point
     raws = pylon.recv()
 
-    pylon.send(b'20024644C0040201')  # get alarm info   - get data of Battery 1
+    #pylon.send(b'20024644C0040201')  # get alarm info   - get data of Battery 1
+    pylon.send(e.getAlarmInfo(battNumber=2))
     raws = pylon.recv()
+
+    pylon.send(e.getAlarmInfo(allPackData=True))
+    raws = pylon.recv()
+
+
     pylon.send(b'20024644C0040202')  # get alarm info   - get data of Battery 2
     raws = pylon.recv()
 
@@ -59,11 +65,10 @@ if __name__ == '__main__':
 
     packCount=7
     for batt in range(0,packCount,1):
-        pylon.send(e.analogValue(BattNumber=batt))  # get Analog Value
+        pylon.send(e.analogValue(battNumber=batt))  # get Analog Value
         raws = pylon.recv()
         d.decode_header(raws[0])
         print(d.decodeAnalogValue())
-
 
     sys.exit(0)
 
