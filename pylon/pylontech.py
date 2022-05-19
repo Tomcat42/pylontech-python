@@ -83,7 +83,7 @@ class Rs485Handler():
         self.sendTime2 = time.time_ns() - self.sendTime1
 
 
-    def receive_frame(self, start=b'~', end=b'\r'):
+    def receive_frame(self, endtime, start=b'~', end=b'\r'):
         ''' receives a frame defined by a stert and end byte
         :param start: the start byte, e.g. b'~'
         :param end:   the end byte, e.g. b'\r'
@@ -95,6 +95,8 @@ class Rs485Handler():
         # wait for leading byte / start byte:
         while char != start:
             char = self.ser.read(1)
+            if time.time() > endtime:
+                return None
         self.rcvTime1 = time.time_ns() - self.sendTime1   #  just for Timeout hamdling
         # receive all until the trialing byte / end byte:
         data = self.ser.read_until(end)
@@ -117,9 +119,12 @@ class Pylontech_rs485():
     def __init__(self, device='/dev/ttyUSB0', baud=9600):
         self.rs485 = Rs485Handler(device, baud)
 
-    def recv(self):
-        data = self.rs485.receive_frame(start=b'~', end=b'\r')
+    def recv(self, timeout=10):
+        endtime = time.time() + timeout
+        data = self.rs485.receive_frame(endtime=endtime, start=b'~', end=b'\r')
         # check len
+        if data is None:
+            return None
         if len(data) < 16:
             # smaller then minimal size
             return None

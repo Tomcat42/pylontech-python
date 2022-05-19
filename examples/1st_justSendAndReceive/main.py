@@ -28,16 +28,16 @@ if __name__ == '__main__':
     pylon.send(e.getProtocolVersion())  # get protocol version
     raws = pylon.recv()
     print(raws)
-    # TODO: Bug without payload recv returns None
     d.decode_header(raws[0])
     print(d.decodePotocolVersion())
 
     #pylon.send(b'20024651C0040000')  # get manufactory info
-    pylon.send(e.getManufacturerInfo())
-    raws = pylon.recv()
-    print(raws)
-    d.decode_header(raws[0])
-    print(d.decodeManufacturerInfo())
+    for i in range(0,15):
+        pylon.send(e.getManufacturerInfo(battNumber=i))
+        raws = pylon.recv()
+        print(raws)
+        d.decode_header(raws[0])
+        print(d.decodeManufacturerInfo())
 
     pylon.send(b'20024647C0040000')  # get system parameter, fixed point
     raws = pylon.recv()

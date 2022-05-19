@@ -36,8 +36,8 @@ class PylontechEncode:
     def getProtocolVersion(self):
         return self.genFrame(2, 0x4f, 0, '')
 
-    def getManufacturerInfo(self):
-        return self.genFrame(2, 0x51, 0, '')
+    def getManufacturerInfo(self, battNumber=0):
+        return self.genFrame(2+battNumber, 0x51, 0, '')
 
 
 if __name__ == '__main__':
