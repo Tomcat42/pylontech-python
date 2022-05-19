@@ -120,7 +120,7 @@ class Pylontech_rs485():
     def recv(self):
         data = self.rs485.receive_frame(start=b'~', end=b'\r')
         # check len
-        if len(data) < 20:
+        if len(data) < 16:
             # smaller then minimal size
             return None
         start = data.index(b'~')

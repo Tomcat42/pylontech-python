@@ -29,8 +29,8 @@ if __name__ == '__main__':
     raws = pylon.recv()
     print(raws)
     # TODO: Bug without payload recv returns None
-    #d.decode_header(raws[0])
-    #print(d.decodePotocolVersion())
+    d.decode_header(raws[0])
+    print(d.decodePotocolVersion())
 
     #pylon.send(b'20024651C0040000')  # get manufactory info
     pylon.send(e.getManufacturerInfo())
