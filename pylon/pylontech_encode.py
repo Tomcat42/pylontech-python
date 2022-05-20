@@ -25,7 +25,7 @@ class PylontechEncode:
         return bytes(command, 'ascii')
 
     # BattNumber 0..15
-    def analogValue(self, battNumber=0, allPackData=False):
+    def getAnalogValue(self, battNumber=0, allPackData=False):
         # First Battery is input val, info 1 and adr 2
         if allPackData:
             return self.genFrame(2, 0x42, 4, '02ff')

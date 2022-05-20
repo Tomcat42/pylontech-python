@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     packCount=7
     for batt in range(0,packCount,1):
-        pylon.send(e.analogValue(battNumber=batt))  # get Analog Value
+        pylon.send(e.getAnalogValue(battNumber=batt))  # get Analog Value
         raws = pylon.recv()
         d.decode_header(raws[0])
         print(d.decodeAnalogValue())
