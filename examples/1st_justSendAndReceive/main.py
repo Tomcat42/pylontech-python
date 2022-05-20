@@ -39,8 +39,11 @@ if __name__ == '__main__':
     #    d.decode_header(raws[0])
     #    print(d.decodeManufacturerInfo())
 
-    pylon.send(b'20024647C0040000')  # get system parameter, fixed point
+    #pylon.send(b'20024647C0040000')  # get system parameter, fixed point
+    pylon.send(e.getSystemParameter())  # get system parameter, fixed point
     raws = pylon.recv()
+    d.decode_header(raws[0])
+    print(d.decodeSystemParameter())
 
     #pylon.send(b'20024644C0040201')  # get alarm info   - get data of Battery 1
     pylon.send(e.getAlarmInfo(battNumber=2))
@@ -53,12 +56,15 @@ if __name__ == '__main__':
     pylon.send(b'20024644C0040202')  # get alarm info   - get data of Battery 2
     raws = pylon.recv()
 
-    pylon.send(b'20024692C0040201')  # get charge, discharge management info - get data of Battery 1
+    #pylon.send(b'20024692C0040201')  # get charge, discharge management info - get data of Battery 1
+    pylon.send(e.getChargeDischargeManagement(battNumber=0))
     raws = pylon.recv()
     print(d.decode_header(raws[0]))
     print(d.decodeChargeDischargeManagementInfo())
 
+
     pylon.send(b'20024692C0040202')  # get charge, discharge management info - get data of Battery 2
+    pylon.send(e.getChargeDischargeManagement(battNumber=1))
     raws = pylon.recv()
     print(d.decode_header(raws[0]))
     print(d.decodeChargeDischargeManagementInfo())
@@ -73,8 +79,13 @@ if __name__ == '__main__':
     sys.exit(0)
 
 
-    # pylon.send(b'20024693C0040201')  # get module SN number - get data of Battery 1
-    # raws = pylon.recv()
+    #pylon.send(b'20024693C0040201')  # get module SN number - get data of Battery 1
+    for batt in range(0, packCount, 1):
+        pylon.send(e.getSerialNumber(battNumber=batt))
+        raws = pylon.recv()
+        d.decode_header(raws[0])
+        print(d.decodeSerialNumber())
+
     # pylon.send(b'20024693C0040202')  # get module SN number - get data of Battery 2
     # raws = pylon.recv()
     # pylon.send(b'20024693C0040204')  # get module SN number - get data of Battery 3
