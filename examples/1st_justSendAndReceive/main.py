@@ -32,12 +32,13 @@ if __name__ == '__main__':
     print(d.decodePotocolVersion())
 
     #pylon.send(b'20024651C0040000')  # get manufactory info
-    #for i in range(0,15):
+    #for i in range(0,7):
     #    pylon.send(e.getManufacturerInfo(battNumber=i))
     #    raws = pylon.recv()
     #    print(raws)
     #    d.decode_header(raws[0])
-    #    print(d.decodeManufacturerInfo())
+     #   print(d.decodeManufacturerInfo())
+
 
     #pylon.send(b'20024647C0040000')  # get system parameter, fixed point
     pylon.send(e.getSystemParameter())  # get system parameter, fixed point
@@ -51,7 +52,10 @@ if __name__ == '__main__':
 
     pylon.send(e.getAlarmInfo(allPackData=True))
     raws = pylon.recv()
+    d.decode_header(raws[0])
+    print(d.decodeAlarmInfo())
 
+    sys.exit(0)
 
     pylon.send(b'20024644C0040202')  # get alarm info   - get data of Battery 2
     raws = pylon.recv()

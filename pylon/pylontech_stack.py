@@ -58,6 +58,9 @@ class PylontechStack:
         @return  A dict with all collected Information.
         """
         analoglList = []
+        chargeDischargeManagementList = []
+        alarmInfoList = []
+
         totalCapacity = 0
         remainCapacity = 0
         power = 0
@@ -70,7 +73,22 @@ class PylontechStack:
             remainCapacity = remainCapacity + decoded['RemainCapacity']
             totalCapacity = totalCapacity + decoded['ModuleTotalCapacity']
             power = power + (decoded['Voltage'] * decoded['Current'])
-        self.pylonData['analoglList'] = analoglList
+
+            self.pylon.send(self.encode.getChargeDischargeManagement(battNumber=batt))
+            raws = self.pylon.recv()
+            self.decode.decode_header(raws[0])
+            decoded = self.decode.decodeChargeDischargeManagementInfo()
+            chargeDischargeManagementList.append(decoded)
+
+            self.pylon.send(self.encode.getAlarmInfo(battNumber=batt))
+            raws = self.pylon.recv()
+            self.decode.decode_header(raws[0])
+            decoded = self.decode.decodeAlarmInfo()
+            alarmInfoList.append(decoded)
+
+        self.pylonData['AnaloglList'] = analoglList
+        self.pylonData['ChargeDischargeManagementList']=chargeDischargeManagementList
+        self.pylonData['AlarmInfoList'] = alarmInfoList
 
         self.pylonData['Calculated']['TotalCapacity_Ah'] = totalCapacity
         self.pylonData['Calculated']['RemainCapacity_Ah'] = remainCapacity
@@ -93,5 +111,5 @@ if __name__ == '__main__':
     dev = '/dev/ttyUSB0'
     pylon = PylontechStack(device=dev, baud=115200, manualBattcountLimit=7)
     stackResult = pylon.update()
-    # pprint.pprint(stackResult)
-    pprint.pprint(stackResult['Calculated'])
+    pprint.pprint(stackResult)
+    #pprint.pprint(stackResult['Calculated'])
