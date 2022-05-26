@@ -1,0 +1,15 @@
+diff --git a/SerialPCAP/CaptureSerial.cs b/SerialPCAP/CaptureSerial.cs
+index 30f15b1..f6c55c8 100644
+--- a/SerialPCAP/CaptureSerial.cs
++++ b/SerialPCAP/CaptureSerial.cs
+@@ -71,6 +71,10 @@ namespace SerialPCAP
+                                        {
+                                                throw new TimeoutException();
+                                        }
++                                        if (b == 0xd)   // End Of Frame : Line feed
++                                        {
++                                                throw new TimeoutException();
++                                        }
+                                }
+                        }
+                        catch (TimeoutException)
