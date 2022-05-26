@@ -17,17 +17,37 @@ function bitoper(a, b, oper)
     return r
 end
 
+local cid2_table = {
+    -- command information
+    ['42'] =  "[CMD] Get analog value, fixed point",
+    ['44'] =  "[CMD] Get alarm info",
+    ['47'] =  "[CMD] Get system parameter, fixed point",
+    ['4F'] =  "[CMD] Get protocol version",
+    ['51'] =  "[CMD] Get manufacturer info",
+    ['92'] =  "[CMD] Get charge, discharge management info",
+    ['93'] = "[CMD] Get SN number of battery",
+    ['94'] = "[CMD] Set value of charge, discharge management info",
+    ['95'] = "[CMD] Turn off",
+    ['96'] = "[CMD] Get firmware info",
+    -- response information
+    ['00'] = "[RESP] normal (ok)",
+    ['01'] = "[RESP] VER error",
+    ['02'] = "[RESP] CHKSUM error",
+    ['03'] = "[RESP] LCHKSUM error",
+    ['04'] = "[RESP] CID2 invalid",
+    ['05'] = "[RESP] Command format error",
+    ['06'] = "[RESP] Invalid (INFO) data",
+    ['90'] = "[RESP] ADR error",
+    ['91'] = "[RESP] (Internal) communication Error",
+}
+
+
 -- declare our protocol
 pylontech_proto = Proto("pylontech_rs485","Pylontech RS-485 serial")
-
 
 -- create a function to dissect it
 function pylontech_proto.dissector(buffer,pinfo,tree)
     pinfo.cols.protocol = "Pylontech"
-    local yesno_types = {
-        [0] = "No",
-        [1] = "Yes"
-    }
     local subtree = tree:add(pylontech_proto,buffer(),"pylontech frame")
     if buffer(0,1):uint() == 0x7e then
         local pos;
@@ -50,11 +70,17 @@ function pylontech_proto.dissector(buffer,pinfo,tree)
         pos = pos + 2
         local cid1;
         cid1 = string.char(buffer(pos,1):uint(), buffer(pos + 1,1):uint())
-        subtree:add(buffer(pos,2),"CID1: 0x" .. cid1)
+        if cid1 == '46' then
+            text = "CID1: 0x46 - Battery Data"
+        else
+            text = "CID1: 0x" .. cid1 .. " unknown! "
+        end
+        subtree:add(buffer(pos,2),text)
         pos = pos + 2
         local cid2;
         cid2 = string.char(buffer(pos,1):uint(), buffer(pos +1,1):uint())
-        subtree:add(buffer(pos,2),"CID2: 0x" .. cid2)
+        text = cid2_table[cid2]
+        subtree:add(buffer(pos,2),"CID2: 0x" .. cid2 .. " - " .. text)
         pos = pos + 2
         local length;
         length = string.char(buffer(pos + 1,1):uint(), buffer(pos + 2,1):uint(), buffer(pos + 3,1):uint())
@@ -75,9 +101,8 @@ function pylontech_proto.dissector(buffer,pinfo,tree)
         datapos = pos
         chksumpos = datapos + length
         local info;
-        info = string.char(buffer(pos,1):uint(), buffer(pos + 1,1):uint())
-        subtree:add(buffer(pos,2),"Info: " .. info)
-        pos = pos + 2
+        subtree:add(buffer(pos,length),"INFO (Data Section)")
+        pos = pos + length
         -- checksum is at the end of the frame
         local chksum;
         pos = chksumpos
@@ -91,6 +116,5 @@ function pylontech_proto.dissector(buffer,pinfo,tree)
 end
 
 -- register_dissector ("Pylontech", pylontech_proto);
-
-register_postdissector(pylontech_proto)
+-- register_postdissector(pylontech_proto)
 
