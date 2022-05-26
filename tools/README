@@ -1,0 +1,8 @@
+setup Wireshark:
+
+Use that dissector to send USER0 to your dissector (Edit->Preferences->Protocols->DLT_USER).
+- Edit the Encapsulation table
+- add a line in the User's DLT table:
+  DLT              | Pyload Protocol | Header size |Header Protocol| Trailer size | Treiler protocol
+  User 0 (DLT=147) | pylontech_rs485 | 0           |               |   0          |
+

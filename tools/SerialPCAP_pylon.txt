@@ -1,0 +1,1 @@
+just patched the capture tool to end a frame when receiving the line feed.
