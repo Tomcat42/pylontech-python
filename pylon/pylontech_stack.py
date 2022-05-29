@@ -24,11 +24,12 @@ class PylontechStack:
     All Data polled is attached as raw result lists as well.
     """
 
-    def __init__(self, device, baud=9600, manualBattcountLimit=15):
+    def __init__(self, device, baud=9600, manualBattcountLimit=15, group=0):
         """! The class initializer.
         @param device  RS485 device name (ex Windows: 'com0', Linux: '/dev/ttyUSB0').
         @param baud  RS485 baud rate. Usually 9500 or 115200 for pylontech.
         @param manualBattcountLimit  Class probes for the number of batteries in stack which takes a lot of time.
+        @param group Group number if more than one battery groups are configured
         This parameter limits the probe action for quick startup. (especially useful for Testing)
 
         @return  An instance of the Sensor class initialized with the specified name.
@@ -38,10 +39,11 @@ class PylontechStack:
         self.decode = PylontechDecode()
 
         self.pylonData = {}
+        self.group = group
 
         serialList = []
         for batt in range(0, manualBattcountLimit, 1):
-            self.pylon.send(self.encode.getSerialNumber(battNumber=batt))
+            self.pylon.send(self.encode.getSerialNumber(battNumber=batt, group=self.group))
             raws = self.pylon.recv()
             if raws is None:
                 break
@@ -65,7 +67,7 @@ class PylontechStack:
         remainCapacity = 0
         power = 0
         for batt in range(0, self.battcount - 1):
-            self.pylon.send(self.encode.getAnalogValue(battNumber=batt))
+            self.pylon.send(self.encode.getAnalogValue(battNumber=batt, group=self.group))
             raws = self.pylon.recv()
             self.decode.decode_header(raws[0])
             decoded = self.decode.decodeAnalogValue()
@@ -74,13 +76,13 @@ class PylontechStack:
             totalCapacity = totalCapacity + decoded['ModuleTotalCapacity']
             power = power + (decoded['Voltage'] * decoded['Current'])
 
-            self.pylon.send(self.encode.getChargeDischargeManagement(battNumber=batt))
+            self.pylon.send(self.encode.getChargeDischargeManagement(battNumber=batt, group=self.group))
             raws = self.pylon.recv()
             self.decode.decode_header(raws[0])
             decoded = self.decode.decodeChargeDischargeManagementInfo()
             chargeDischargeManagementList.append(decoded)
 
-            self.pylon.send(self.encode.getAlarmInfo(battNumber=batt))
+            self.pylon.send(self.encode.getAlarmInfo(battNumber=batt, group=self.group))
             raws = self.pylon.recv()
             self.decode.decode_header(raws[0])
             decoded = self.decode.decodeAlarmInfo()
@@ -109,7 +111,7 @@ if __name__ == '__main__':
 
     # device = 'COM3'
     dev = '/dev/ttyUSB0'
-    pylon = PylontechStack(device=dev, baud=115200, manualBattcountLimit=7)
+    pylon = PylontechStack(device=dev, baud=115200, manualBattcountLimit=7, group=0)
     stackResult = pylon.update()
-    pprint.pprint(stackResult)
-    #pprint.pprint(stackResult['Calculated'])
+    #pprint.pprint(stackResult)
+    pprint.pprint(stackResult['Calculated'])

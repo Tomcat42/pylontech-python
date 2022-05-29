@@ -25,44 +25,44 @@ class PylontechEncode:
         return bytes(command, 'ascii')
 
     # BattNumber 0..15
-    def getAnalogValue(self, battNumber=0, allPackData=False):
+    def getAnalogValue(self, battNumber=0, allPackData=False, group=0):
         # First Battery is input val, info 1 and adr 2
         if allPackData:
             return self.genFrame(2, 0x42, 4, '02ff')
         else:
-            info = str("{:02x}".format(battNumber + 2))
+            info = str("{:02x}".format(battNumber + 2 + (group << 4)))
             info = info + str("{:02x}".format(battNumber + 1))
-            return self.genFrame(2 + battNumber, 0x42, 4, info)
+            return self.genFrame(2 + battNumber + (group << 4), 0x42, 4, info)
 
     def getProtocolVersion(self):
         return self.genFrame(2, 0x4f, 0, '')
 
-    def getManufacturerInfo(self, battNumber=0):
+    def getManufacturerInfo(self, battNumber=0, group=0):
         # answers on each Address but always with the Informarion of the first Battery
         # example Stack mixed of 2 US5000 and 5 US3000 replies on addr. 2..8 with "US5000"
-        return self.genFrame(2 + battNumber, 0x51, 0, '')
+        return self.genFrame(2 + battNumber + (group << 4), 0x51, 0, '')
 
-    def getAlarmInfo(self, battNumber=0, allPackData=False):
+    def getAlarmInfo(self, battNumber=0, allPackData=False, group=0):
         # First Battery is input val, info 1 and adr 2
         if allPackData:
             return self.genFrame(2, 0x44, 4, '02ff')
         else:
-            info = str("{:02x}".format(battNumber + 2))
+            info = str("{:02x}".format(battNumber + 2 + (group << 4)))
             info = info + str("{:02x}".format(battNumber + 1))
-            return self.genFrame(2 + battNumber, 0x44, 4, info)
+            return self.genFrame(2 + battNumber + (group << 4), 0x44, 4, info)
 
     def getSystemParameter(self):
         return self.genFrame(2, 0x47, 0, '')
 
-    def getChargeDischargeManagement(self, battNumber=0):
-        info = str("{:02x}".format(battNumber + 2))
+    def getChargeDischargeManagement(self, battNumber=0, group=0):
+        info = str("{:02x}".format(battNumber + 2 + (group << 4)))
         info = info + str("{:02x}".format(battNumber + 1))
-        return self.genFrame(2+battNumber, 0x92, 4, info)
+        return self.genFrame(2 + battNumber + (group << 4), 0x92, 4, info)
 
-    def getSerialNumber(self, battNumber=0):
-        info = str("{:02x}".format(battNumber + 2))
+    def getSerialNumber(self, battNumber=0, group=0):
+        info = str("{:02x}".format(battNumber + 2 + (group << 4)))
         info = info + str("{:02x}".format(battNumber + 1))
-        return self.genFrame(2+battNumber, 0x93, 4, info)
+        return self.genFrame(2 + battNumber + (group << 4), 0x93, 4, info)
 
 
 if __name__ == '__main__':
