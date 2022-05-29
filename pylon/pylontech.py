@@ -11,7 +11,7 @@
 '''
 
 import serial
-from construct import *
+#from construct import *
 import time
 
 # message_crc = Struct('message_crc', 'crc'/Int32ul)
@@ -20,25 +20,25 @@ CHKSUM_BYTES = 4
 EOI_BYTES = 1
 
 
-message_header =  'message_header'/Struct(
-    #'soi' / Int8ul,      # 1 byte hex value - single character
-    'ver' / Int16ul,     # 1 byte hex value => encoded as 2 Characters HEX
-    'adr' / Int16ul,     # 1 byte hex value => encoded as 2 Characters HEX
-    'cid1' / Int16ul,    # 1 byte hex value => encoded as 2 Characters HEX
-    'cid2' / Int16ul,    # 1 byte hex value => encoded as 2 Characters HEX
-    'length' / Int32ul,  # 2 byte hex value => encoded as 4 Characters HEX
-)
+#message_header =  'message_header'/Struct(
+#    #'soi' / Int8ul,      # 1 byte hex value - single character
+#    'ver' / Int16ul,     # 1 byte hex value => encoded as 2 Characters HEX
+#    'adr' / Int16ul,     # 1 byte hex value => encoded as 2 Characters HEX
+#    'cid1' / Int16ul,    # 1 byte hex value => encoded as 2 Characters HEX
+#    'cid2' / Int16ul,    # 1 byte hex value => encoded as 2 Characters HEX
+#    'length' / Int32ul,  # 2 byte hex value => encoded as 4 Characters HEX
+#)
 
-message_format = 'message_format'/Struct(
-    #'soi' / Int8ul,      # 1 byte hex value - single character
-    'ver' / Int16ul,     # 1 byte hex value => encoded as 2 Characters HEX
-    'adr' / Int16ul,     # 1 byte hex value => encoded as 2 Characters HEX
-    'cid1' / Int16ul,    # 1 byte hex value => encoded as 2 Characters HEX
-    'cid2' / Int16ul,    # 1 byte hex value => encoded as 2 Characters HEX
-    'length' / Int32ul,  # 2 byte hex value => encoded as 4 Characters HEX
-    'cmd_info' / Int16ul,   # 1 byte hex value => encoded as 2 Characters HEX
-    'data_info' / Int16ul   # 1 byte hex value => encoded as 2 Characters HEX
-)
+#message_format = 'message_format'/Struct(
+#    #'soi' / Int8ul,      # 1 byte hex value - single character
+#    'ver' / Int16ul,     # 1 byte hex value => encoded as 2 Characters HEX
+#    'adr' / Int16ul,     # 1 byte hex value => encoded as 2 Characters HEX
+#    'cid1' / Int16ul,    # 1 byte hex value => encoded as 2 Characters HEX
+#    'cid2' / Int16ul,    # 1 byte hex value => encoded as 2 Characters HEX
+#    'length' / Int32ul,  # 2 byte hex value => encoded as 4 Characters HEX
+#    'cmd_info' / Int16ul,   # 1 byte hex value => encoded as 2 Characters HEX
+#    'data_info' / Int16ul   # 1 byte hex value => encoded as 2 Characters HEX
+#)
 
 
 
