@@ -15,11 +15,11 @@ class PylontechDecode:
 
     def alarm(self, hexstr):  # signed int
         temp = self.twosComplement_hex(hexstr)
-        if temp is 0:
+        if temp == 0:
             return 'Ok'
-        if temp is 1:
+        if temp == 1:
             return 'BelowLimit'
-        if temp is 1:
+        if temp == 2:
             return 'AboveLimit'
         return 'OtherError'
 
