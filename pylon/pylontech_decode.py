@@ -27,7 +27,7 @@ class PylontechDecode:
         return int(hexstr, 16) / 1000.0
 
     def moduleCurrent(self, hexstr):  # signed int (charge +)
-        return self.twosComplement_hex(hexstr) / 100.0
+        return self.twosComplement_hex(hexstr) / 10.0
 
     def capacity(self, hexstr):  # unsigned int
         return int(hexstr, 16) / 1000.0
