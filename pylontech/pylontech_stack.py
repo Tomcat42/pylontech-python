@@ -12,9 +12,9 @@
 # - MIT
 
 
-from pylontech import Pylontech_rs485
-from pylontech_decode import PylontechDecode
-from pylontech_encode import PylontechEncode
+from pylontech.pylontech_base import PylontechRS485
+from pylontech.pylontech_decode import PylontechDecode
+from pylontech.pylontech_encode import PylontechEncode
 
 
 class PylontechStack:
@@ -34,7 +34,7 @@ class PylontechStack:
 
         @return  An instance of the Sensor class initialized with the specified name.
         """
-        self.pylon = Pylontech_rs485(device=device, baud=baud)
+        self.pylon = PylontechRS485(device=device, baud=baud)
         self.encode = PylontechEncode()
         self.decode = PylontechDecode()
 
@@ -44,7 +44,7 @@ class PylontechStack:
         serialList = []
         for batt in range(0, manualBattcountLimit, 1):
             self.pylon.send(self.encode.getSerialNumber(battNumber=batt, group=self.group))
-            raws = self.pylon.recv()
+            raws = self.pylon.receive()
             if raws is None:
                 break
             self.decode.decode_header(raws[0])
@@ -68,7 +68,7 @@ class PylontechStack:
         power = 0
         for batt in range(0, self.battcount - 1):
             self.pylon.send(self.encode.getAnalogValue(battNumber=batt, group=self.group))
-            raws = self.pylon.recv()
+            raws = self.pylon.receive()
             self.decode.decode_header(raws[0])
             decoded = self.decode.decodeAnalogValue()
             analoglList.append(decoded)
@@ -77,13 +77,13 @@ class PylontechStack:
             power = power + (decoded['Voltage'] * decoded['Current'])
 
             self.pylon.send(self.encode.getChargeDischargeManagement(battNumber=batt, group=self.group))
-            raws = self.pylon.recv()
+            raws = self.pylon.receive()
             self.decode.decode_header(raws[0])
             decoded = self.decode.decodeChargeDischargeManagementInfo()
             chargeDischargeManagementList.append(decoded)
 
             self.pylon.send(self.encode.getAlarmInfo(battNumber=batt, group=self.group))
-            raws = self.pylon.recv()
+            raws = self.pylon.receive()
             self.decode.decode_header(raws[0])
             decoded = self.decode.decodeAlarmInfo()
             alarmInfoList.append(decoded)
