@@ -1,0 +1,179 @@
+""" Functions to support the Pylontech US2000 and similar Batteries.
+
+    This module provides Classes to communicate over RS-485 to the Pylontech
+    Battery. This code is based on the
+    "PYLON low voltage Protocol RS485", Version 3.3 (2018/08/21)
+
+    The RS-485 communication ist based on pyserial.
+    As hardware, a simple usb-serial rs485 adapter can be used.
+    these adapter are able to receive out of the box, sending is possible
+    by enabling the transceive pin using the RTS signal.
+"""
+
+import serial
+import time
+
+CHKSUM_BYTES = 4
+EOI_BYTES = 1
+
+
+class Rs485Handler:
+    """ Handles the USB to RS485 adapter with TE / Transmit Enable on RTS
+        provides sending and receiving frames defined by start byte and end byte
+        preset for
+        - 9600 baud,8n1
+        - /dev/ttyUSB0 als serial device
+     """
+    sendTime1 = 0
+    sendTime2 = 0
+    rcvTime1 = 0
+    rcvTime2 = 0
+
+    def __init__(self, device='/dev/ttyUSB0', baud=9600):
+        # try:
+        # open serial port:
+        self.ser = serial.Serial(device,
+                                 baudrate=baud,
+                                 bytesize=serial.EIGHTBITS,
+                                 parity=serial.PARITY_NONE,
+                                 stopbits=serial.STOPBITS_ONE,
+                                 rtscts=False,
+                                 dsrdtr=False,
+                                 timeout=10.0,
+                                 inter_byte_timeout=0.02)
+
+        # except OSError:
+        #    print("device not found: " + device)
+        #    exit(1)
+
+    def send(self, data):
+        """ send a Frame of binary data
+        :param data:  binary data e.g. b'~2002464FC0048520FCB2\r'
+        :return:      -
+        """
+        print("->  " + data.decode())
+        self.ser.rts = True  # set TX enable
+        self.ser.write(data)
+        self.ser.rts = False  # reset TX enable = enable Receive
+        self.sendTime1 = time.time_ns()
+        while self.ser.out_waiting > 0:
+            time.sleep(0.001)
+        self.sendTime2 = time.time_ns() - self.sendTime1
+
+    def receive_frame(self, endtime, start=b'~', end=b'\r'):
+        """ receives a frame defined by a stert and end byte
+        :param start: the start byte, e.g. b'~'
+        :param end:   the end byte, e.g. b'\r'
+        :return:      the frame as binary data,
+                      e.g. b'~200246000000FDB2\r'
+                      returns after the first end byte.
+        """
+        char = self.ser.read(1)
+        # wait for leading byte / start byte:
+        while char != start:
+            char = self.ser.read(1)
+            if time.time() > endtime:
+                return None
+        self.rcvTime1 = time.time_ns() - self.sendTime1  # just for Timeout hamdling
+        # receive all until the trialing byte / end byte:
+        data = self.ser.read_until(end)
+        # build a complete frame:
+        frame = start + data
+        # just more timeout handling:
+        self.rcvTime2 = time.time_ns() - self.sendTime1  # just for Timeout hamdling
+        # just for debugging:
+        print("\r <- " + frame.decode())
+        # return the frame
+        print(" times: {:04.3f}     {:6.3f} - {:6.3f} ".format(self.sendTime2 / 1000.0, self.rcvTime1 / 1000.0,
+                                                               self.rcvTime2 / 1000.0))
+        return frame
+
+
+class PylontechRS485:
+    """ pylontech rs485 protocol handler
+        can send and receive using a RS-485 adapter
+        - checks the packet checksum for received packets.
+        - adapts the packet checksum and adds prefix and suffix for packets to be sent.
+    """
+    valid_chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+
+    def __init__(self, device='/dev/ttyUSB0', baud=9600):
+        """ init function of the pylontech rs485 protocol handler
+        :param device:
+                    serial device, depends on the Operating system
+                    e.g. /dev/ttyUSB0, /dev/ttyS0
+        :param baud:
+                    valid baud rate, identical to the setting at the Battery,
+                    e.g. 9600 or 115200
+        """
+        self.rs485 = Rs485Handler(device, baud)
+
+    def receive(self, timeout=10):
+        """
+        try to receive a pylontech type packet from the RS-485 serial port.
+        checks the packet checksum and returns the packet if the checksum is correct.
+        :param timeout:
+                   inter-byte-timeout in seconds
+        :return: returns the frame or an empty list
+        """
+        endtime = time.time() + timeout
+        data = self.rs485.receive_frame(endtime=endtime, start=b'~', end=b'\r')
+        # check len
+        if data is None:
+            return None
+        if len(data) < 16:
+            # smaller then minimal size
+            return None
+        start = data.index(b'~')
+        if start > 0:
+            data = data[start:-1]
+        # check prefix and suffix
+        index = 0
+        while (data[index] != 0x7E) and (data[index] not in self.valid_chars):
+            index += 1
+            if (data[index] == 0x7E) and (data[index] in self.valid_chars):
+                data = data[index:len(data)]
+                break
+        if data[0] != 0x7E:  # '~'
+            # pefix missing
+            return None
+        if data[-1] != 0xd:  # '\r'
+            # suffix missing
+            return None
+        data = data[1:-1]  # packet stripped, - without prefix, suffix
+        packages = data.split(b'\r~')
+        data2 = []
+        for package in reversed(packages):
+            chksum = self.get_chk_sum(package, len(package))
+            chksum_from_pkg = int(package[-4:].decode(), base=16)
+            if chksum == chksum_from_pkg:
+                data2.append(package)
+            else:
+                print("crc error soll<->ist   {:04x} --- {:04x}".format(chksum, chksum_from_pkg))
+                print(package)
+        return data2
+
+    @staticmethod
+    def get_chk_sum(data, size):
+        sum = 0
+        for byte in data[0:size - CHKSUM_BYTES]:
+            sum += byte
+        sum = ~sum
+        sum &= 0xFFFF
+        sum += 1
+        return sum
+
+    def send(self, data):
+        """
+        sends a pylontech type packet to the RS-485 serial port.
+        :param data: packet as binary string
+                     - checksum will be calculated and written,
+                     - prefix/suffix will be added.
+                     e.g. given b'2002464FC0048520' will be sent as b'~2002464FC0048520....\r'
+        :return:     -
+        """
+        chksum = self.get_chk_sum(data, len(data) + CHKSUM_BYTES)
+        package = ("~" + data.decode() + "{:04X}".format(chksum) + "\r").encode()
+        self.rs485.send(package)
+
+    pass
