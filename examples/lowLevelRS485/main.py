@@ -9,9 +9,18 @@
 # PylontechRS485 handles send & receive and Prefix/suffix/checksum and timeout handling.
 from pylontech import PylontechRS485
 
+
 def do_some_stuff(device='/dev/ttyUSB0'):
+    '''
+    send valid packages to the Battery,
+    :param device:
+        your serial Port name/device Name, e.g. /dev/ttyS0 or COM1:
+    :return:
+        No return Value
+    '''
     # on Windows: device = 'COM3'
     pylon = PylontechRS485(device=device, baud=115200)
+    pylon.verbose(level=11)  # activate verbosity, to show packages
     pylon.send(b'2002464FC0048520')  # get protocol version
     raws = pylon.receive()
 
