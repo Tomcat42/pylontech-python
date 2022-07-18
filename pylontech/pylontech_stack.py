@@ -43,9 +43,14 @@ class PylontechStack:
 
         serialList = []
         for batt in range(0, manualBattcountLimit, 1):
-            self.pylon.send(self.encode.getSerialNumber(battNumber=batt, group=self.group))
-            raws = self.pylon.receive()
-            if raws is None:
+            packet_data = self.encode.getSerialNumber(battNumber=batt, group=self.group)
+            self.pylon.send(packet_data)
+            try:
+                raws = self.pylon.receive(0.1)  # serial number should provide a fast answer.
+                if raws is None:
+                    break
+            except Exception as e:
+                print(e.args)
                 break
             self.decode.decode_header(raws[0])
             decoded = self.decode.decodeSerialNumber()

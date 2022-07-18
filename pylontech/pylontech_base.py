@@ -13,6 +13,7 @@
 import serial
 import time
 
+
 CHKSUM_BYTES = 4
 EOI_BYTES = 1
 
@@ -28,6 +29,7 @@ class Rs485Handler:
     sendTime2 = 0
     rcvTime1 = 0
     rcvTime2 = 0
+    verbose = False
 
     def __init__(self, device='/dev/ttyUSB0', baud=9600):
         # try:
@@ -58,12 +60,16 @@ class Rs485Handler:
         #    print("device not found: " + device)
         #    exit(1)
 
+    def verbose_print(self, data):
+        if self.verbose > 0:
+            print(data)
+
     def send(self, data):
         """ send a Frame of binary data
         :param data:  binary data e.g. b'~2002464FC0048520FCB2\r'
         :return:      -
         """
-        print("->  " + data.decode())
+        self.verbose_print("->  " + data.decode())
         self.ser.rts = True  # set TX enable
         self.ser.write(data)
         self.ser.rts = False  # reset TX enable = enable Receive
@@ -72,32 +78,37 @@ class Rs485Handler:
             time.sleep(0.001)
         self.sendTime2 = time.time_ns() - self.sendTime1
 
-    def receive_frame(self, endtime, start=b'~', end=b'\r'):
-        """ receives a frame defined by a stert and end byte
-        :param start: the start byte, e.g. b'~'
-        :param end:   the end byte, e.g. b'\r'
-        :return:      the frame as binary data,
-                      e.g. b'~200246000000FDB2\r'
-                      returns after the first end byte.
+    def receive_frame(self, end_time, start=b'~', end=b'\r'):
+        """ receives a frame defined by a start byte/prefix and end byte/suffix
+        :param end_time:
+            we expect receiving the last character before this timestamp
+        :param start:
+            the start byte, e.g. b'~'
+        :param end:
+            the end byte, e.g. b'\r'
+        :return:
+            the frame as binary data,
+            e.g. b'~200246000000FDB2\r'
+            returns after the first end byte.
         """
         char = self.ser.read(1)
-        # wait for leading byte / start byte:
+        # wait for leading byte / start byte; empty the buffer before the start byte:
         while char != start:
             char = self.ser.read(1)
-            if time.time() > endtime:
+            if time.time() > end_time:
+                raise Exception('Timeout waiting for an answer.')
                 return None
-        self.rcvTime1 = time.time_ns() - self.sendTime1  # just for Timeout hamdling
+        self.rcvTime1 = time.time_ns() - self.sendTime1  # just for Timeout handling
         # receive all until the trialing byte / end byte:
-        data = self.ser.read_until(end)
-        # build a complete frame:
-        frame = start + data
+        # and build a complete frame as we throw the start byte...
+        frame = start + self.ser.read_until(end)  # this uses the inter_byte_timeout on failure.
         # just more timeout handling:
-        self.rcvTime2 = time.time_ns() - self.sendTime1  # just for Timeout hamdling
+        self.rcvTime2 = time.time_ns() - self.sendTime1  # just for Timeout handling
         # just for debugging:
-        print("\r <- " + frame.decode())
+        self.verbose_print("\r <- " + frame.decode())
+        self.verbose_print(" times: {:04.3f}     {:6.3f} - {:6.3f} ".format(
+            self.sendTime2 / 1000.0, self.rcvTime1 / 1000.0, self.rcvTime2 / 1000.0))
         # return the frame
-        print(" times: {:04.3f}     {:6.3f} - {:6.3f} ".format(self.sendTime2 / 1000.0, self.rcvTime1 / 1000.0,
-                                                               self.rcvTime2 / 1000.0))
         return frame
 
 
@@ -108,6 +119,7 @@ class PylontechRS485:
         - adapts the packet checksum and adds prefix and suffix for packets to be sent.
     """
     valid_chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+    verbose = 0
 
     def __init__(self, device='/dev/ttyUSB0', baud=9600):
         """ init function of the pylontech rs485 protocol handler
@@ -120,16 +132,26 @@ class PylontechRS485:
         """
         self.rs485 = Rs485Handler(device, baud)
 
-    def receive(self, timeout=10):
+    def verbose(self, level=0):
+        self.verbose = level
+        if level >10:
+            self.rs485.verbose = level - 10
+        else:
+            self.rs485.verbose = 0
+
+    def receive(self, timeout=1):
         """
         try to receive a pylontech type packet from the RS-485 serial port.
         checks the packet checksum and returns the packet if the checksum is correct.
         :param timeout:
-                   inter-byte-timeout in seconds
-        :return: returns the frame or an empty list
+            timespan until packet has to be received
+        :return:
+            returns the frame or an empty list
         """
-        endtime = time.time() + timeout
-        data = self.rs485.receive_frame(endtime=endtime, start=b'~', end=b'\r')
+        start_byte = b'~'
+        end_byte = b'\r'
+        end_time = time.time() + timeout
+        data = self.rs485.receive_frame(end_time=end_time, start=start_byte, end=end_byte)
         # check len
         if data is None:
             return None
@@ -146,11 +168,13 @@ class PylontechRS485:
             if (data[index] == 0x7E) and (data[index] in self.valid_chars):
                 data = data[index:len(data)]
                 break
-        if data[0] != 0x7E:  # '~'
+        if data[0] != start_byte[0]:  # default: start = 0x7e = '~'
             # pefix missing
+            raise ValueError("no Prefix '{}' received:\nreceived:\n{}".format(start_byte, data[0]))
             return None
-        if data[-1] != 0xd:  # '\r'
+        if data[-1] != end_byte[0]:   # default: start = 0xd = '\r'
             # suffix missing
+            raise ValueError("no suffix '{}' received:\nreceived:\n{}".format(end_byte, data[-1]))
             return None
         data = data[1:-1]  # packet stripped, - without prefix, suffix
         packages = data.split(b'\r~')
@@ -161,8 +185,7 @@ class PylontechRS485:
             if chksum == chksum_from_pkg:
                 data2.append(package)
             else:
-                print("crc error soll<->ist   {:04x} --- {:04x}".format(chksum, chksum_from_pkg))
-                print(package)
+                raise ValueError("crc error;  Soll<->ist: {:04x} --- {:04x}\nPacket:\n{}".format(chksum, chksum_from_pkg, package))
         return data2
 
     @staticmethod
