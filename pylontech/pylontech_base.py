@@ -34,15 +34,27 @@ class Rs485Handler:
     def __init__(self, device='/dev/ttyUSB0', baud=9600):
         # try:
         # open serial port:
-        self.ser = serial.Serial(device,
-                                 baudrate=baud,
-                                 bytesize=serial.EIGHTBITS,
-                                 parity=serial.PARITY_NONE,
-                                 stopbits=serial.STOPBITS_ONE,
-                                 rtscts=False,
-                                 dsrdtr=False,
-                                 timeout=10.0,
-                                 inter_byte_timeout=0.02)
+        if '://' in device:
+            self.ser = serial.serial_for_url(url=device,
+                                             baudrate=baud,
+                                             bytesize=serial.EIGHTBITS,
+                                             parity=serial.PARITY_NONE,
+                                             stopbits=serial.STOPBITS_ONE,
+                                             rtscts=False,
+                                             dsrdtr=False,
+                                             timeout=10.0,
+                                             inter_byte_timeout=0.02
+                                             )
+        else:
+            self.ser = serial.Serial(device,
+                                     baudrate=baud,
+                                     bytesize=serial.EIGHTBITS,
+                                     parity=serial.PARITY_NONE,
+                                     stopbits=serial.STOPBITS_ONE,
+                                     rtscts=False,
+                                     dsrdtr=False,
+                                     timeout=10.0,
+                                     inter_byte_timeout=0.02)
 
         # except OSError:
         #    print("device not found: " + device)
