@@ -74,8 +74,9 @@ class Rs485Handler:
         self.ser.write(data)
         self.ser.rts = False  # reset TX enable = enable Receive
         self.sendTime1 = time.time_ns()
-        while self.ser.out_waiting > 0:
-            time.sleep(0.001)
+        if hasattr(self.ser, 'out_waiting'):
+            while self.ser.out_waiting > 0:
+                time.sleep(0.001)
         self.sendTime2 = time.time_ns() - self.sendTime1
 
     def receive_frame(self, end_time, start=b'~', end=b'\r'):
