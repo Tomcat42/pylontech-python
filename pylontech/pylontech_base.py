@@ -42,8 +42,8 @@ class Rs485Handler:
                                              stopbits=serial.STOPBITS_ONE,
                                              rtscts=False,
                                              dsrdtr=False,
-                                             timeout=10.0,
-                                             inter_byte_timeout=0.02
+                                             timeout=3.0,
+                                             inter_byte_timeout=0.1
                                              )
         else:
             self.ser = serial.Serial(device,
