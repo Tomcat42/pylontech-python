@@ -74,9 +74,8 @@ class Rs485Handler:
         self.ser.write(data)
         self.ser.rts = False  # reset TX enable = enable Receive
         self.sendTime1 = time.time_ns()
-        if hasattr(self.ser, 'out_waiting'):
-            while self.ser.out_waiting > 0:
-                time.sleep(0.001)
+        while self.ser.out_waiting > 0:
+            time.sleep(0.001)
         self.sendTime2 = time.time_ns() - self.sendTime1
 
     def receive_frame(self, end_time, start=b'~', end=b'\r'):
@@ -111,15 +110,6 @@ class Rs485Handler:
             self.sendTime2 / 1000.0, self.rcvTime1 / 1000.0, self.rcvTime2 / 1000.0))
         # return the frame
         return frame
-
-    def clear_rx_buffer(self):
-        """ clear pending characters from serial buffer. especially important for network adapters"""
-        char = '1'
-        restore_timeout = self.ser.timeout
-        self.ser.timeout = 1
-        while (char is not None) and (len(char) > 0):
-            char = self.ser.read(1)
-        self.ser.timeout = restore_timeout
 
 
 class PylontechRS485:
@@ -220,9 +210,5 @@ class PylontechRS485:
         chksum = self.get_chk_sum(data, len(data) + CHKSUM_BYTES)
         package = ("~" + data.decode() + "{:04X}".format(chksum) + "\r").encode()
         self.rs485.send(package)
-
-    def clear_rx_buffer(self):
-        """ clear pending characters from serial buffer. especially important for network adapters"""
-        self.rs485.clear_rx_buffer()
 
     pass

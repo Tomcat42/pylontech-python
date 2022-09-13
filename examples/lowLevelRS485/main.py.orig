@@ -6,22 +6,12 @@
     next examples will use a baud autodetect feature.
 """
 
-import sys
-sys.path.insert(0, "../../")
-
 # PylontechRS485 handles send & receive and Prefix/suffix/checksum and timeout handling.
-from pylontech.pylontech_base  import PylontechRS485
+from ...pylontech.pylontech_base import PylontechRS485
 
-def do_some_stuff(device='socket://10.10.4.13:23'):
-#def do_some_stuff(device='rfc2217://10.10.4.13:23'):
+
+def do_some_stuff(device='rfc2217://10.10.15.125:23'):
 #def do_some_stuff(device='/dev/ttyUSB0'):
-    '''
-    send valid packages to the Battery,
-    :param device:
-        your serial Port name/device Name, e.g. /dev/ttyS0 or COM1:
-    :return:
-        No return Value
-    '''
     # on Windows: device = 'COM3'
     pylon = PylontechRS485(device=device, baud=115200)
     pylon.verbose(level=11)  # activate verbosity, to show packages

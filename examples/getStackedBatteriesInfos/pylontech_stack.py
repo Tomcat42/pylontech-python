@@ -12,9 +12,9 @@
 # - MIT
 
 
-from pylontech.pylontech_base import PylontechRS485
-from pylontech.pylontech_decode import PylontechDecode
-from pylontech.pylontech_encode import PylontechEncode
+from pylontech_base import PylontechRS485
+from pylontech_decode import PylontechDecode
+from pylontech_encode import PylontechEncode
 
 
 class PylontechStack:
@@ -41,7 +41,6 @@ class PylontechStack:
         self.pylonData = {}
         self.group = group
 
-        self.pylon.clear_rx_buffer()
         serialList = []
         for batt in range(0, manualBattcountLimit, 1):
             packet_data = self.encode.getSerialNumber(battNumber=batt, group=self.group)
@@ -72,7 +71,6 @@ class PylontechStack:
         totalCapacity = 0
         remainCapacity = 0
         power = 0
-        self.pylon.clear_rx_buffer()
         for batt in range(0, self.battcount - 1):
             self.pylon.send(self.encode.getAnalogValue(battNumber=batt, group=self.group))
             raws = self.pylon.receive()
