@@ -24,6 +24,20 @@ class PylontechStack:
     All Data polled is attached as raw result lists as well.
     """
 
+    def poll_serial_number(self, batt):
+        packet_data = self.encode.getSerialNumber(battNumber=batt, group=self.group)
+        self.pylon.send(packet_data)
+        try:
+            raws = self.pylon.receive(0.1)  # serial number should provide a fast answer.
+            if raws is None:
+                return None
+        except Exception as e:
+            print(e.args)
+            return None
+        self.decode.decode_header(raws[0])
+        decoded = self.decode.decodeSerialNumber()
+        return decoded
+
     def __init__(self, device, baud=9600, manualBattcountLimit=15, group=0):
         """! The class initializer.
         @param device  RS485 device name (ex Windows: 'com0', Linux: '/dev/ttyUSB0').
@@ -44,17 +58,7 @@ class PylontechStack:
         self.pylon.clear_rx_buffer()
         serialList = []
         for batt in range(0, manualBattcountLimit, 1):
-            packet_data = self.encode.getSerialNumber(battNumber=batt, group=self.group)
-            self.pylon.send(packet_data)
-            try:
-                raws = self.pylon.receive(0.1)  # serial number should provide a fast answer.
-                if raws is None:
-                    break
-            except Exception as e:
-                print(e.args)
-                break
-            self.decode.decode_header(raws[0])
-            decoded = self.decode.decodeSerialNumber()
+            decoded = self.poll_serial_number(batt)
             serialList.append(decoded['ModuleSerialNumber'])
         self.pylonData['SerialNumbers'] = serialList
         self.battcount = len(serialList)
@@ -73,7 +77,7 @@ class PylontechStack:
         remainCapacity = 0
         power = 0
         self.pylon.clear_rx_buffer()
-        for batt in range(0, self.battcount - 1):
+        for batt in range(0, self.battcount):
             self.pylon.send(self.encode.getAnalogValue(battNumber=batt, group=self.group))
             raws = self.pylon.receive()
             self.decode.decode_header(raws[0])
@@ -95,9 +99,16 @@ class PylontechStack:
             decoded = self.decode.decodeAlarmInfo()
             alarmInfoList.append(decoded)
 
+
         self.pylonData['AnaloglList'] = analoglList
-        self.pylonData['ChargeDischargeManagementList']=chargeDischargeManagementList
+        self.pylonData['ChargeDischargeManagementList'] = chargeDischargeManagementList
         self.pylonData['AlarmInfoList'] = alarmInfoList
+
+        self.pylon.send(self.encode.getSystemParameter())
+        raws = self.pylon.receive()
+        self.decode.decode_header(raws[0])
+        decoded = self.decode.decodeSystemParameter()
+        self.pylonData['SystemParameter'] = decoded
 
         self.pylonData['Calculated']['TotalCapacity_Ah'] = totalCapacity
         self.pylonData['Calculated']['RemainCapacity_Ah'] = remainCapacity
@@ -120,5 +131,5 @@ if __name__ == '__main__':
     dev = '/dev/ttyUSB0'
     pylon = PylontechStack(device=dev, baud=115200, manualBattcountLimit=7, group=0)
     stackResult = pylon.update()
-    #pprint.pprint(stackResult)
+    # pprint.pprint(stackResult)
     pprint.pprint(stackResult['Calculated'])
