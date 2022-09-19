@@ -34,7 +34,11 @@ class PylontechStack:
                 raws = self.pylon.receive(0.2)  # serial number should provide a fast answer.
             except Exception as e:
                 print("Pylontech RX exception ", e.args)
-                raws=None
+                raws = None
+                self.pylon.reconnect()
+            except ValueError as e:
+                print("Pylontech RX exception ", e.args)
+                raws = None
                 self.pylon.reconnect()
 
             if raws is not None:
@@ -77,7 +81,6 @@ class PylontechStack:
         self.battcount = len(serialList)
         self.pylonData['Calculated'] = {}
 
-
     def update(self):
         """! Stack polling function.
         @return  A dict with all collected Information.
@@ -114,7 +117,10 @@ class PylontechStack:
                 alarmInfoList.append(decoded)
             except Exception as e:
                 self.pylon.reconnect()
-                raise Exception('Pylontech update error: ' + e)
+                raise Exception('Pylontech update error')
+            except ValueError as e:
+                self.pylon.reconnect()
+                raise Exception('Pylontech update error')
 
         self.pylonData['AnaloglList'] = analoglList
         self.pylonData['ChargeDischargeManagementList'] = chargeDischargeManagementList
@@ -128,7 +134,10 @@ class PylontechStack:
             self.pylonData['SystemParameter'] = decoded
         except Exception as e:
             self.pylon.reconnect()
-            raise Exception('Pylontech update error: ' + e)
+            raise Exception('Pylontech update error')
+        except ValueError as e:
+            self.pylon.reconnect()
+            raise Exception('Pylontech update error')
 
         self.pylonData['Calculated']['TotalCapacity_Ah'] = totalCapacity
         self.pylonData['Calculated']['RemainCapacity_Ah'] = remainCapacity
