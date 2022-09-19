@@ -113,19 +113,22 @@ class PylontechStack:
                 decoded = self.decode.decodeAlarmInfo()
                 alarmInfoList.append(decoded)
             except Exception as e:
-                pass
-
-
+                self.pylon.reconnect()
+                raise Exception('Pylontech update error: ' + e)
 
         self.pylonData['AnaloglList'] = analoglList
         self.pylonData['ChargeDischargeManagementList'] = chargeDischargeManagementList
         self.pylonData['AlarmInfoList'] = alarmInfoList
 
-        self.pylon.send(self.encode.getSystemParameter())
-        raws = self.pylon.receive()
-        self.decode.decode_header(raws[0])
-        decoded = self.decode.decodeSystemParameter()
-        self.pylonData['SystemParameter'] = decoded
+        try:
+            self.pylon.send(self.encode.getSystemParameter())
+            raws = self.pylon.receive()
+            self.decode.decode_header(raws[0])
+            decoded = self.decode.decodeSystemParameter()
+            self.pylonData['SystemParameter'] = decoded
+        except Exception as e:
+            self.pylon.reconnect()
+            raise Exception('Pylontech update error: ' + e)
 
         self.pylonData['Calculated']['TotalCapacity_Ah'] = totalCapacity
         self.pylonData['Calculated']['RemainCapacity_Ah'] = remainCapacity
