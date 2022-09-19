@@ -84,7 +84,6 @@ class PylontechDecode:
             self.data['StatusChargeImmediately2'] = bool(int(payload[18:20], 16) & 0x10)
             self.data['StatusFullChargeRequired'] = bool(int(payload[18:20], 16) & 0x08)
         else:
-            print('format error')
             self.data['CommandValue'] = None
             self.data['ChargeVoltage'] = None
             self.data['DischargeVoltage'] = None
@@ -95,6 +94,7 @@ class PylontechDecode:
             self.data['StatusChargeImmediately1'] = None
             self.data['StatusChargeImmediately2'] = None
             self.data['StatusFullChargeRequired'] = None
+            raise Exception('format error')
         return self.data
 
     def decodeAlarmInfo(self):
@@ -171,7 +171,7 @@ class PylontechDecode:
             self.data['DischargeUpperLimitTemperature'] = None
             self.data['DischargeLowerLimitTemperature'] = None
             self.data['DischargeLowerLimitCurrent'] = None
-            print('Format Error')
+            raise Exception('format error')
         return self.data
 
     def decodeAnalogValue(self):

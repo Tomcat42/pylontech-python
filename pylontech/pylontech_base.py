@@ -31,12 +31,12 @@ class Rs485Handler:
     rcvTime2 = 0
     verbose = False
 
-    def __init__(self, device='/dev/ttyUSB0', baud=9600):
+    def connect(self):
         # try:
         # open serial port:
-        if '://' in device:
-            self.ser = serial.serial_for_url(url=device,
-                                             baudrate=baud,
+        if '://' in self.device:
+            self.ser = serial.serial_for_url(url=self.device,
+                                             baudrate=self.baud,
                                              bytesize=serial.EIGHTBITS,
                                              parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE,
@@ -46,8 +46,8 @@ class Rs485Handler:
                                              inter_byte_timeout=0.1
                                              )
         else:
-            self.ser = serial.Serial(device,
-                                     baudrate=baud,
+            self.ser = serial.Serial(self.device,
+                                     baudrate=self.baud,
                                      bytesize=serial.EIGHTBITS,
                                      parity=serial.PARITY_NONE,
                                      stopbits=serial.STOPBITS_ONE,
@@ -59,6 +59,13 @@ class Rs485Handler:
         # except OSError:
         #    print("device not found: " + device)
         #    exit(1)
+
+
+    def __init__(self, device='/dev/ttyUSB0', baud=9600):
+        self.device=device
+        self.baud=baud
+        self.connect()
+        self.clear_rx_buffer()
 
     def verbose_print(self, data):
         if self.verbose > 0:
@@ -121,6 +128,16 @@ class Rs485Handler:
             char = self.ser.read(1)
         self.ser.timeout = restore_timeout
 
+    def reconnect(self):
+        """ force reconnect to serial port"""
+        self.ser.close();
+        self.connect()
+        self.clear_rx_buffer()
+
+    def close(self):
+        """ force close serial connection"""
+        self.ser.close()
+
 
 class PylontechRS485:
     """ pylontech rs485 protocol handler
@@ -141,6 +158,15 @@ class PylontechRS485:
                     e.g. 9600 or 115200
         """
         self.rs485 = Rs485Handler(device, baud)
+
+    def reconnect(self):
+        """ force reconnect to serial port"""
+        self.rs485.reconnect()
+
+    def close(self):
+        """ force close serial connection"""
+        self.rs485.close()
+
 
     def verbose(self, level=0):
         self.verbose = level

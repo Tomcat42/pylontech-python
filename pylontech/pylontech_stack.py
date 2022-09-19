@@ -24,19 +24,27 @@ class PylontechStack:
     All Data polled is attached as raw result lists as well.
     """
 
-    def poll_serial_number(self, batt):
-        packet_data = self.encode.getSerialNumber(battNumber=batt, group=self.group)
-        self.pylon.send(packet_data)
-        try:
-            raws = self.pylon.receive(0.1)  # serial number should provide a fast answer.
-            if raws is None:
-                return None
-        except Exception as e:
-            print(e.args)
-            return None
-        self.decode.decode_header(raws[0])
-        decoded = self.decode.decodeSerialNumber()
-        return decoded
+    def poll_serial_number(self, batt, retries=3):
+        retryCount = 0
+        while retryCount < retries:
+            retryCount = retryCount + 1
+            packet_data = self.encode.getSerialNumber(battNumber=batt, group=self.group)
+            self.pylon.send(packet_data)
+            try:
+                raws = self.pylon.receive(0.2)  # serial number should provide a fast answer.
+            except Exception as e:
+                print("Pylontech RX exception ", e.args)
+                raws=None
+                self.pylon.reconnect()
+
+            if raws is not None:
+                self.decode.decode_header(raws[0])
+                try:
+                    decoded = self.decode.decodeSerialNumber()
+                    return decoded
+                except Exception as e:
+                    print("Pylontech decode exception ", e.args)
+        raise Exception('Retry count exceeded.')
 
     def __init__(self, device, baud=9600, manualBattcountLimit=15, group=0):
         """! The class initializer.
@@ -48,22 +56,27 @@ class PylontechStack:
 
         @return  An instance of the Sensor class initialized with the specified name.
         """
-        self.pylon = PylontechRS485(device=device, baud=baud)
         self.encode = PylontechEncode()
         self.decode = PylontechDecode()
-
         self.pylonData = {}
         self.group = group
+        self.pylon = None
 
-        self.pylon.clear_rx_buffer()
+        try:
+            self.pylon = PylontechRS485(device=device, baud=baud)
+        except Exception as e:
+            raise Exception('Connection to battery failed: ' + e)
         serialList = []
         for batt in range(0, manualBattcountLimit, 1):
-            decoded = self.poll_serial_number(batt)
-            serialList.append(decoded['ModuleSerialNumber'])
+            try:
+                decoded = self.poll_serial_number(batt)
+                serialList.append(decoded['ModuleSerialNumber'])
+            except Exception as e:
+                raise Exception('Poll for serial numbers failed: ' + e)
         self.pylonData['SerialNumbers'] = serialList
         self.battcount = len(serialList)
-
         self.pylonData['Calculated'] = {}
+
 
     def update(self):
         """! Stack polling function.
@@ -76,28 +89,32 @@ class PylontechStack:
         totalCapacity = 0
         remainCapacity = 0
         power = 0
-        self.pylon.clear_rx_buffer()
         for batt in range(0, self.battcount):
-            self.pylon.send(self.encode.getAnalogValue(battNumber=batt, group=self.group))
-            raws = self.pylon.receive()
-            self.decode.decode_header(raws[0])
-            decoded = self.decode.decodeAnalogValue()
-            analoglList.append(decoded)
-            remainCapacity = remainCapacity + decoded['RemainCapacity']
-            totalCapacity = totalCapacity + decoded['ModuleTotalCapacity']
-            power = power + (decoded['Voltage'] * decoded['Current'])
+            try:
+                self.pylon.clear_rx_buffer()
+                self.pylon.send(self.encode.getAnalogValue(battNumber=batt, group=self.group))
+                raws = self.pylon.receive()
+                self.decode.decode_header(raws[0])
+                decoded = self.decode.decodeAnalogValue()
+                analoglList.append(decoded)
+                remainCapacity = remainCapacity + decoded['RemainCapacity']
+                totalCapacity = totalCapacity + decoded['ModuleTotalCapacity']
+                power = power + (decoded['Voltage'] * decoded['Current'])
 
-            self.pylon.send(self.encode.getChargeDischargeManagement(battNumber=batt, group=self.group))
-            raws = self.pylon.receive()
-            self.decode.decode_header(raws[0])
-            decoded = self.decode.decodeChargeDischargeManagementInfo()
-            chargeDischargeManagementList.append(decoded)
+                self.pylon.send(self.encode.getChargeDischargeManagement(battNumber=batt, group=self.group))
+                raws = self.pylon.receive()
+                self.decode.decode_header(raws[0])
+                decoded = self.decode.decodeChargeDischargeManagementInfo()
+                chargeDischargeManagementList.append(decoded)
 
-            self.pylon.send(self.encode.getAlarmInfo(battNumber=batt, group=self.group))
-            raws = self.pylon.receive()
-            self.decode.decode_header(raws[0])
-            decoded = self.decode.decodeAlarmInfo()
-            alarmInfoList.append(decoded)
+                self.pylon.send(self.encode.getAlarmInfo(battNumber=batt, group=self.group))
+                raws = self.pylon.receive()
+                self.decode.decode_header(raws[0])
+                decoded = self.decode.decodeAlarmInfo()
+                alarmInfoList.append(decoded)
+            except Exception as e:
+                pass
+
 
 
         self.pylonData['AnaloglList'] = analoglList
