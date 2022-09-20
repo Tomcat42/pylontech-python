@@ -43,7 +43,7 @@ class Rs485Handler:
                                              rtscts=False,
                                              dsrdtr=False,
                                              timeout=10.0,
-                                             inter_byte_timeout=0.02
+                                             inter_byte_timeout=0.2
                                              )
         else:
             self.ser = serial.Serial(device,
@@ -54,7 +54,7 @@ class Rs485Handler:
                                      rtscts=False,
                                      dsrdtr=False,
                                      timeout=10.0,
-                                     inter_byte_timeout=0.02)
+                                     inter_byte_timeout=0.2)
 
         # except OSError:
         #    print("device not found: " + device)
@@ -139,7 +139,7 @@ class PylontechRS485:
         else:
             self.rs485.verbose = 0
 
-    def receive(self, timeout=1):
+    def receive(self, timeout=10):
         """
         try to receive a pylontech type packet from the RS-485 serial port.
         checks the packet checksum and returns the packet if the checksum is correct.

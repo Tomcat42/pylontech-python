@@ -1,4 +1,6 @@
 """! @brief Pylontech battery stack polling class."""
+import time
+
 ##
 # @file pylontech_stack.py
 #
@@ -69,14 +71,14 @@ class PylontechStack:
         try:
             self.pylon = PylontechRS485(device=device, baud=baud)
         except Exception as e:
-            raise Exception('Connection to battery failed: ' + e)
+            raise Exception('Connection to battery failed.')
         serialList = []
         for batt in range(0, manualBattcountLimit, 1):
             try:
                 decoded = self.poll_serial_number(batt)
                 serialList.append(decoded['ModuleSerialNumber'])
             except Exception as e:
-                raise Exception('Poll for serial numbers failed: ' + e)
+                raise Exception('Poll for serial numbers failed.')
         self.pylonData['SerialNumbers'] = serialList
         self.battcount = len(serialList)
         self.pylonData['Calculated'] = {}
@@ -85,6 +87,8 @@ class PylontechStack:
         """! Stack polling function.
         @return  A dict with all collected Information.
         """
+        starttime=time.time()
+        print("start update")
         analoglList = []
         chargeDischargeManagementList = []
         alarmInfoList = []
@@ -150,6 +154,7 @@ class PylontechStack:
         else:
             self.pylonData['Calculated']['ChargePower_kW'] = 0
             self.pylonData['Calculated']['DischargePower_kW'] = -1.0 * self.pylonData['Calculated']['Power_kW']
+        print("end update: ", time.time()-starttime)
         return self.pylonData
 
 
