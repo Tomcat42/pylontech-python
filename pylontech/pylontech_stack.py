@@ -71,14 +71,14 @@ class PylontechStack:
         try:
             self.pylon = PylontechRS485(device=device, baud=baud)
         except Exception as e:
-            raise Exception('Connection to battery failed.')
+            raise Exception('Connection to battery failed.') from e
         serialList = []
         for batt in range(0, manualBattcountLimit, 1):
             try:
                 decoded = self.poll_serial_number(batt)
                 serialList.append(decoded['ModuleSerialNumber'])
             except Exception as e:
-                raise Exception('Poll for serial numbers failed.')
+                raise Exception('Poll for serial numbers failed.') from e
         self.pylonData['SerialNumbers'] = serialList
         self.battcount = len(serialList)
         self.pylonData['Calculated'] = {}
@@ -121,10 +121,10 @@ class PylontechStack:
                 alarmInfoList.append(decoded)
             except Exception as e:
                 self.pylon.reconnect()
-                raise Exception('Pylontech update error')
+                raise Exception('Pylontech update error') from e
             except ValueError as e:
                 self.pylon.reconnect()
-                raise Exception('Pylontech update error')
+                raise Exception('Pylontech update error') from e
 
         self.pylonData['AnaloglList'] = analoglList
         self.pylonData['ChargeDischargeManagementList'] = chargeDischargeManagementList
@@ -138,10 +138,10 @@ class PylontechStack:
             self.pylonData['SystemParameter'] = decoded
         except Exception as e:
             self.pylon.reconnect()
-            raise Exception('Pylontech update error')
+            raise Exception('Pylontech update error') from e
         except ValueError as e:
             self.pylon.reconnect()
-            raise Exception('Pylontech update error')
+            raise Exception('Pylontech update error') from e
 
         self.pylonData['Calculated']['TotalCapacity_Ah'] = totalCapacity
         self.pylonData['Calculated']['RemainCapacity_Ah'] = remainCapacity
