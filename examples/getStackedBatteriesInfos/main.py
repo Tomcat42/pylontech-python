@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 from pprint import pprint
+from threading import Event
 
 from pylontech import PylontechStack
 print('evaluating the stack of batteries (0..n batteries)')
@@ -12,7 +13,7 @@ print(x.pylonData)
 while 1:
     try:
         x.update()
-        time.sleep(1)
+        Event.wait(1)
         pprint(x.pylonData['Calculated'])
     except Exception as err:
         print("Timeout ", err)

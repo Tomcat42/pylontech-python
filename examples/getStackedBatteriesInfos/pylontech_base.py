@@ -12,7 +12,7 @@
 
 import serial
 import time
-
+from threading import Event
 
 CHKSUM_BYTES = 4
 EOI_BYTES = 1
@@ -75,7 +75,7 @@ class Rs485Handler:
         self.ser.rts = False  # reset TX enable = enable Receive
         self.sendTime1 = time.time_ns()
         while self.ser.out_waiting > 0:
-            time.sleep(0.001)
+            Event.wait(0.001)
         self.sendTime2 = time.time_ns() - self.sendTime1
 
     def receive_frame(self, end_time, start=b'~', end=b'\r'):
