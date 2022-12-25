@@ -162,7 +162,8 @@ if __name__ == '__main__':
     import pprint
 
     # device = 'COM3'
-    dev = '/dev/ttyUSB0'
+    #dev = '/dev/ttyUSB0'
+    dev = 'socket://10.10.4.13:23'
     pylon = PylontechStack(device=dev, baud=115200, manualBattcountLimit=7, group=0)
     stackResult = pylon.update()
     # pprint.pprint(stackResult)
