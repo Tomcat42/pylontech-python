@@ -147,13 +147,13 @@ class PylontechStack:
         self.pylonData['Calculated']['RemainCapacity_Ah'] = remainCapacity
         self.pylonData['Calculated']['Remain_Percent'] = round((remainCapacity / totalCapacity) * 100, 0)
 
-        self.pylonData['Calculated']['Power_kW'] = round(power / 1000, 5)
-        if self.pylonData['Calculated']['Power_kW'] > 0:
-            self.pylonData['Calculated']['ChargePower_kW'] = self.pylonData['Calculated']['Power_kW']
-            self.pylonData['Calculated']['DischargePower_kW'] = 0
+        self.pylonData['Calculated']['Power_W'] = round(power, 3)
+        if self.pylonData['Calculated']['Power_W'] > 0:
+            self.pylonData['Calculated']['ChargePower_W'] = self.pylonData['Calculated']['Power_W']
+            self.pylonData['Calculated']['DischargePower_W'] = 0
         else:
-            self.pylonData['Calculated']['ChargePower_kW'] = 0
-            self.pylonData['Calculated']['DischargePower_kW'] = -1.0 * self.pylonData['Calculated']['Power_kW']
+            self.pylonData['Calculated']['ChargePower_W'] = 0
+            self.pylonData['Calculated']['DischargePower_W'] = -1.0 * self.pylonData['Calculated']['Power_W']
         print("end update: ", time.time()-starttime)
         return self.pylonData
 
@@ -166,5 +166,5 @@ if __name__ == '__main__':
     dev = 'socket://10.10.4.13:23'
     pylon = PylontechStack(device=dev, baud=115200, manualBattcountLimit=7, group=0)
     stackResult = pylon.update()
-    # pprint.pprint(stackResult)
+    pprint.pprint(stackResult)
     pprint.pprint(stackResult['Calculated'])
