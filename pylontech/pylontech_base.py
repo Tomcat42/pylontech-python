@@ -32,6 +32,12 @@ class Rs485Handler:
     rcvTime2 = 0
     verbose = False
 
+    def __init__(self, device='/dev/ttyUSB0', baud=9600):
+        self.device=device
+        self.baud=baud
+        self.connect()
+        self.clear_rx_buffer()
+
     def connect(self):
         # try:
         # open serial port:
@@ -60,13 +66,6 @@ class Rs485Handler:
         # except OSError:
         #    print("device not found: " + device)
         #    exit(1)
-
-
-    def __init__(self, device='/dev/ttyUSB0', baud=9600):
-        self.device=device
-        self.baud=baud
-        self.connect()
-        self.clear_rx_buffer()
 
     def verbose_print(self, data):
         if self.verbose > 0:
@@ -160,15 +159,6 @@ class PylontechRS485:
         """
         self.rs485 = Rs485Handler(device, baud)
 
-    def reconnect(self):
-        """ force reconnect to serial port"""
-        self.rs485.reconnect()
-
-    def close(self):
-        """ force close serial connection"""
-        self.rs485.close()
-
-
     def verbose(self, level=0):
         self.verbose = level
         if level >10:
@@ -251,5 +241,13 @@ class PylontechRS485:
     def clear_rx_buffer(self):
         """ clear pending characters from serial buffer. especially important for network adapters"""
         self.rs485.clear_rx_buffer()
+
+    def reconnect(self):
+        """ force reconnect to serial port"""
+        self.rs485.reconnect()
+
+    def close(self):
+        """ force close serial connection"""
+        self.rs485.close()
 
     pass

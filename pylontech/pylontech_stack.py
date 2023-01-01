@@ -1,6 +1,4 @@
 """! @brief Pylontech battery stack polling class."""
-import time
-
 ##
 # @file pylontech_stack.py
 #
@@ -13,7 +11,8 @@ import time
 # @section License
 # - MIT
 
-
+import pprint
+import time
 from pylontech.pylontech_base import PylontechRS485
 from pylontech.pylontech_decode import PylontechDecode
 from pylontech.pylontech_encode import PylontechEncode
@@ -25,6 +24,37 @@ class PylontechStack:
     a ready calculated overall status for te battery stack.
     All Data polled is attached as raw result lists as well.
     """
+
+    def __init__(self, device, baud=9600, manualBattcountLimit=15, group=0):
+        """! The class initializer.
+        @param device  RS485 device name (ex Windows: 'com0', Linux: '/dev/ttyUSB0').
+        @param baud  RS485 baud rate. Usually 9500 or 115200 for pylontech.
+        @param manualBattcountLimit  Class probes for the number of batteries in stack which takes a lot of time.
+        @param group Group number if more than one battery groups are configured
+        This parameter limits the probe action for quick startup. (especially useful for Testing)
+
+        @return  An instance of the Sensor class initialized with the specified name.
+        """
+        self.pylon = None
+        self.encode = PylontechEncode()
+        self.decode = PylontechDecode()
+        self.pylonData = {}
+        self.group = group
+
+        try:
+            self.pylon = PylontechRS485(device=device, baud=baud)
+        except Exception as e:
+            raise Exception('Connection to battery failed.') from e
+        serialList = []
+        for batt in range(0, manualBattcountLimit, 1):
+            try:
+                decoded = self.poll_serial_number(batt)
+                serialList.append(decoded['ModuleSerialNumber'])
+            except Exception as e:
+                raise Exception('Poll for serial numbers failed.') from e
+        self.pylonData['SerialNumbers'] = serialList
+        self.battcount = len(serialList)
+        self.pylonData['Calculated'] = {}
 
     def poll_serial_number(self, batt, retries=3):
         retryCount = 0
@@ -51,37 +81,6 @@ class PylontechStack:
                 except Exception as e:
                     print("Pylontech decode exception ", e.args)
         raise Exception('Retry count exceeded.')
-
-    def __init__(self, device, baud=9600, manualBattcountLimit=15, group=0):
-        """! The class initializer.
-        @param device  RS485 device name (ex Windows: 'com0', Linux: '/dev/ttyUSB0').
-        @param baud  RS485 baud rate. Usually 9500 or 115200 for pylontech.
-        @param manualBattcountLimit  Class probes for the number of batteries in stack which takes a lot of time.
-        @param group Group number if more than one battery groups are configured
-        This parameter limits the probe action for quick startup. (especially useful for Testing)
-
-        @return  An instance of the Sensor class initialized with the specified name.
-        """
-        self.encode = PylontechEncode()
-        self.decode = PylontechDecode()
-        self.pylonData = {}
-        self.group = group
-        self.pylon = None
-
-        try:
-            self.pylon = PylontechRS485(device=device, baud=baud)
-        except Exception as e:
-            raise Exception('Connection to battery failed.') from e
-        serialList = []
-        for batt in range(0, manualBattcountLimit, 1):
-            try:
-                decoded = self.poll_serial_number(batt)
-                serialList.append(decoded['ModuleSerialNumber'])
-            except Exception as e:
-                raise Exception('Poll for serial numbers failed.') from e
-        self.pylonData['SerialNumbers'] = serialList
-        self.battcount = len(serialList)
-        self.pylonData['Calculated'] = {}
 
     def update(self):
         """! Stack polling function.
@@ -159,11 +158,9 @@ class PylontechStack:
 
 
 if __name__ == '__main__':
-    import pprint
-
-    # device = 'COM3'
-    #dev = '/dev/ttyUSB0'
-    dev = 'socket://10.10.4.13:23'
+    # dev = 'COM3'
+    dev = '/dev/ttyUSB0'
+    # dev = 'socket://10.10.4.13:23'
     pylon = PylontechStack(device=dev, baud=115200, manualBattcountLimit=7, group=0)
     stackResult = pylon.update()
     pprint.pprint(stackResult)
