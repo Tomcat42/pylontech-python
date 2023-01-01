@@ -14,7 +14,6 @@ import serial
 import time
 from threading import Event
 
-
 CHKSUM_BYTES = 4
 EOI_BYTES = 1
 
@@ -32,41 +31,34 @@ class Rs485Handler:
     rcvTime2 = 0
     verbose = False
 
-    def connect(self):
+    def __init__(self, device='/dev/ttyUSB0', baud=9600):
         # try:
         # open serial port:
-        if '://' in self.device:
-            self.ser = serial.serial_for_url(url=self.device,
-                                             baudrate=self.baud,
+        if '://' in device:
+            self.ser = serial.serial_for_url(url=device,
+                                             baudrate=baud,
                                              bytesize=serial.EIGHTBITS,
                                              parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE,
                                              rtscts=False,
                                              dsrdtr=False,
-                                             timeout=3.0,
-                                             inter_byte_timeout=0.1
+                                             timeout=10.0,
+                                             inter_byte_timeout=0.2
                                              )
         else:
-            self.ser = serial.Serial(self.device,
-                                     baudrate=self.baud,
+            self.ser = serial.Serial(device,
+                                     baudrate=baud,
                                      bytesize=serial.EIGHTBITS,
                                      parity=serial.PARITY_NONE,
                                      stopbits=serial.STOPBITS_ONE,
                                      rtscts=False,
                                      dsrdtr=False,
                                      timeout=10.0,
-                                     inter_byte_timeout=0.02)
+                                     inter_byte_timeout=0.2)
 
         # except OSError:
         #    print("device not found: " + device)
         #    exit(1)
-
-
-    def __init__(self, device='/dev/ttyUSB0', baud=9600):
-        self.device=device
-        self.baud=baud
-        self.connect()
-        self.clear_rx_buffer()
 
     def verbose_print(self, data):
         if self.verbose > 0:
@@ -82,9 +74,8 @@ class Rs485Handler:
         self.ser.write(data)
         self.ser.rts = False  # reset TX enable = enable Receive
         self.sendTime1 = time.time_ns()
-        if hasattr(self.ser, 'out_waiting'):
-            while self.ser.out_waiting > 0:
-                Event().wait(0.001)
+        while self.ser.out_waiting > 0:
+            Event.wait(0.001)
         self.sendTime2 = time.time_ns() - self.sendTime1
 
     def receive_frame(self, end_time, start=b'~', end=b'\r'):
@@ -120,25 +111,6 @@ class Rs485Handler:
         # return the frame
         return frame
 
-    def clear_rx_buffer(self):
-        """ clear pending characters from serial buffer. especially important for network adapters"""
-        char = '1'
-        restore_timeout = self.ser.timeout
-        self.ser.timeout = 1
-        while (char is not None) and (len(char) > 0):
-            char = self.ser.read(1)
-        self.ser.timeout = restore_timeout
-
-    def reconnect(self):
-        """ force reconnect to serial port"""
-        self.ser.close();
-        self.connect()
-        self.clear_rx_buffer()
-
-    def close(self):
-        """ force close serial connection"""
-        self.ser.close()
-
 
 class PylontechRS485:
     """ pylontech rs485 protocol handler
@@ -160,15 +132,6 @@ class PylontechRS485:
         """
         self.rs485 = Rs485Handler(device, baud)
 
-    def reconnect(self):
-        """ force reconnect to serial port"""
-        self.rs485.reconnect()
-
-    def close(self):
-        """ force close serial connection"""
-        self.rs485.close()
-
-
     def verbose(self, level=0):
         self.verbose = level
         if level >10:
@@ -176,7 +139,7 @@ class PylontechRS485:
         else:
             self.rs485.verbose = 0
 
-    def receive(self, timeout=5):
+    def receive(self, timeout=10):
         """
         try to receive a pylontech type packet from the RS-485 serial port.
         checks the packet checksum and returns the packet if the checksum is correct.
@@ -247,9 +210,5 @@ class PylontechRS485:
         chksum = self.get_chk_sum(data, len(data) + CHKSUM_BYTES)
         package = ("~" + data.decode() + "{:04X}".format(chksum) + "\r").encode()
         self.rs485.send(package)
-
-    def clear_rx_buffer(self):
-        """ clear pending characters from serial buffer. especially important for network adapters"""
-        self.rs485.clear_rx_buffer()
 
     pass

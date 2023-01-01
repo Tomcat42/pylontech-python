@@ -40,6 +40,7 @@ class PylontechDecode:
         return (temp - 2731) / 10.0
 
     def decode_header(self, rawdata):
+        print(rawdata)
         header = {}
         header['VER'] = int(rawdata[0:2], 16)
         header['ADR'] = int(rawdata[2:4], 16)
@@ -47,19 +48,18 @@ class PylontechDecode:
         header['RTN'] = int(rawdata[6:8], 16)
         header['LENGTH'] = int(rawdata[8:12], 16) & 0x0fff
         header['PAYLOAD'] = rawdata[12:12 + header['LENGTH']]
-        #print('Len: ', header['LENGTH'] ,  "RTN: ", header['RTN'] )
         self.data = header
         return header
 
     def decodePotocolVersion(self):
-        if self.data['ID'] == 0x46:
+        if (self.data['ID'] == 0x46):
             pass  # no payload, Version info is in VER field of header
         else:
             print('wrong decoder selected')
         return self.data
 
     def decodeManufacturerInfo(self):
-        if self.data['ID'] == 0x46:
+        if (self.data['ID'] == 0x46):
             payload = self.data['PAYLOAD']
             print(payload[0:20].decode("ASCII"))
             self.data['BatteryName'] = bytes.fromhex(payload[0:20].decode("ASCII")).decode("ASCII").rstrip('\x00')
@@ -70,8 +70,7 @@ class PylontechDecode:
         return self.data
 
     def decodeChargeDischargeManagementInfo(self):
-        payload = self.data['PAYLOAD']
-        if (self.data['ID'] == 0x46) and (len(payload) == 20):
+        if (self.data['ID'] == 0x46):
             payload = self.data['PAYLOAD']
             self.data['CommandValue'] = int(payload[0:2], 16)
             self.data['ChargeVoltage'] = self.moduleVoltage(payload[2:6])
@@ -84,22 +83,11 @@ class PylontechDecode:
             self.data['StatusChargeImmediately2'] = bool(int(payload[18:20], 16) & 0x10)
             self.data['StatusFullChargeRequired'] = bool(int(payload[18:20], 16) & 0x08)
         else:
-            self.data['CommandValue'] = None
-            self.data['ChargeVoltage'] = None
-            self.data['DischargeVoltage'] = None
-            self.data['ChargeCurrent'] = None
-            self.data['DischargeCurrent'] = None
-            self.data['StatusChargeEnable'] = None
-            self.data['StatusDischargeEnable'] = None
-            self.data['StatusChargeImmediately1'] = None
-            self.data['StatusChargeImmediately2'] = None
-            self.data['StatusFullChargeRequired'] = None
-            raise Exception('format error')
+            print('wrong decoder selected')
         return self.data
 
     def decodeAlarmInfo(self):
-        if self.data['ID'] == 0x46:
-            # No size check - variable size possible
+        if (self.data['ID'] == 0x46):
             payload = self.data['PAYLOAD']
             i = 0
             self.data['InfoFlag'] = int(payload[i:i + 2], 16)
@@ -143,12 +131,11 @@ class PylontechDecode:
 
 
     def decodeSystemParameter(self):
-        payload = self.data['PAYLOAD']
-        if (self.data['ID'] == 0x46) and (len(payload) == 50):
+        if (self.data['ID'] == 0x46):
+            payload = self.data['PAYLOAD']
             self.data['UnitCellVoltage'] = self.moduleVoltage(payload[0:4])
             self.data['UnitCellLowVoltageThreshold'] = self.cellVoltage(payload[4:8])
             self.data['UnitCellHighVoltageThreshold'] = self.cellVoltage(payload[8:12])
-            # TODO: Temperature decoding seems broken here.
             self.data['ChargeUpperLimitTemperature'] = self.temperature(payload[12:16])
             self.data['ChargeLowerLimitTemperature'] = self.temperature(payload[16:20])
             self.data['ChargeLowerLimitCurrent'] = self.moduleCurrent(payload[20:24])
@@ -159,24 +146,11 @@ class PylontechDecode:
             self.data['DischargeLowerLimitTemperature'] = self.temperature(payload[40:44])
             self.data['DischargeLowerLimitCurrent'] = self.moduleCurrent(payload[44:48])
         else:
-            self.data['UnitCellVoltage'] = None
-            self.data['UnitCellLowVoltageThreshold'] = None
-            self.data['UnitCellHighVoltageThreshold'] = None
-            self.data['ChargeUpperLimitTemperature'] = None
-            self.data['ChargeLowerLimitTemperature'] = None
-            self.data['ChargeLowerLimitCurrent'] = None
-            self.data['UpperLimitOfTotalVoltage'] = None
-            self.data['LowerLimitOfTotalVoltage'] = None
-            self.data['UnderVoltageOfTotalVoltage'] = None
-            self.data['DischargeUpperLimitTemperature'] = None
-            self.data['DischargeLowerLimitTemperature'] = None
-            self.data['DischargeLowerLimitCurrent'] = None
-            raise Exception('format error')
+            print('wrong decoder selected')
         return self.data
 
     def decodeAnalogValue(self):
-        if self.data['ID'] == 0x46:
-            # No size check - variable size possible
+        if (self.data['ID'] == 0x46):
             payload = self.data['PAYLOAD']
             i = 0
             self.data['InfoFlag'] = int(payload[i:i + 2], 16)
@@ -203,7 +177,7 @@ class PylontechDecode:
             i = i + 4
             self.data['RemainCapacity'] = int(payload[i:i + 4], 16) / 1000.0
             i = i + 4
-            if int(payload[i:i + 2], 16) == 4:
+            if (int(payload[i:i + 2], 16) == 4):
                 self.data['CapDetect'] = '>65Ah'
             else:
                 self.data['CapDetect'] = '<=65Ah'
@@ -212,7 +186,7 @@ class PylontechDecode:
             i = i + 4
             self.data['CycleNumber'] = int(payload[i:i + 4], 16)
             i = i + 4
-            if self.data['CapDetect'] == '>65Ah':
+            if (self.data['CapDetect'] == '>65Ah'):
                 self.data['RemainCapacity'] = self.capacity(payload[i:i + 6])
                 i = i + 6
                 self.data['ModuleTotalCapacity'] = self.capacity(payload[i:i + 6])
@@ -222,15 +196,13 @@ class PylontechDecode:
         return self.data
 
     def decodeSerialNumber(self):
-        payload = self.data['PAYLOAD']
-        if (self.data['ID'] == 0x46) and (len(payload) == 34):
+        if (self.data['ID'] == 0x46):
+            payload = self.data['PAYLOAD']
             self.data['CommandValue'] = bytes.fromhex(payload[0:2].decode("ASCII")).decode("ASCII").rstrip('\x00')
             self.data['ModuleSerialNumber'] = bytes.fromhex(payload[2:34].decode("ASCII")).decode("ASCII").rstrip(
                 '\x00')
         else:
-            print('Format Error')
-            self.data['ModuleSerialNumber'] = None
-            self.data['CommandValue'] = None
+            print('wrong decoder selected')
         return self.data
 
 
