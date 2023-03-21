@@ -86,7 +86,7 @@ class PylontechStack:
         """! Stack polling function.
         @return  A dict with all collected Information.
         """
-        starttime=time.time()
+        starttime = time.time()
         print("start update")
         analoglList = []
         chargeDischargeManagementList = []
@@ -153,7 +153,7 @@ class PylontechStack:
         else:
             self.pylonData['Calculated']['ChargePower_W'] = 0
             self.pylonData['Calculated']['DischargePower_W'] = -1.0 * self.pylonData['Calculated']['Power_W']
-        print("end update: ", time.time()-starttime)
+        print("end update: ", time.time() - starttime)
         return self.pylonData
 
 

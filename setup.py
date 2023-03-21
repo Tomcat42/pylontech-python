@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pylontech",
-    version="0.1.2",
+    version="0.1.3",
     packages=find_packages(include=['pylontech', 'pylontech.*']),
     url="https://github.com/Tomcat42/pylontech-python/",
     author="Bernd Singer",

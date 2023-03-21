@@ -9,9 +9,20 @@ Functions to communicate to Pylontech Batteries using RS-485 serial communicatio
      Some detail information from layer 2 might not be implemented in this layer.
 
 
-Installation using setup.py:
+Installation using pypi.org:
+- run 'pip install pylontech-python'
 
-run 'python3 ./setup.py install'
+
+build and Installation from source using pip:
+
+- build requires pip to be installed
+- run 'pip wheel -r requirements.txt' (installs e.g. pyserial)
+  this downloads the required packages
+- run 'pip wheel .'
+  this builds the wheel package
+- run 'pip install --force-reinstall ./*.whl'
+  this installs the packages (both downloaded and build)
+  --force-reinstall is used if you like to modify, rebuild and reinstall it.
 
 
 Example:

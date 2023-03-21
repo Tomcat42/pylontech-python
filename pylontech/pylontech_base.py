@@ -11,12 +11,23 @@
 """
 
 import serial
+from serial import SerialException
 import time
 from threading import Event
 
 
 CHKSUM_BYTES = 4
 EOI_BYTES = 1
+
+
+class PylontechTimeoutException(Exception):
+    """Raised when receive timeout occurred """
+    pass
+
+
+class PylontechChecksumException(Exception):
+    """Raised when receive timeout occurred """
+    pass
 
 
 class Rs485Handler:
@@ -33,8 +44,8 @@ class Rs485Handler:
     verbose = False
 
     def __init__(self, device='/dev/ttyUSB0', baud=9600):
-        self.device=device
-        self.baud=baud
+        self.device = device
+        self.baud = baud
         self.connect()
         self.clear_rx_buffer()
 
@@ -53,19 +64,23 @@ class Rs485Handler:
                                              inter_byte_timeout=0.1
                                              )
         else:
-            self.ser = serial.Serial(self.device,
+            try:
+                self.ser = serial.Serial(self.device,
                                      baudrate=self.baud,
                                      bytesize=serial.EIGHTBITS,
                                      parity=serial.PARITY_NONE,
                                      stopbits=serial.STOPBITS_ONE,
                                      rtscts=False,
                                      dsrdtr=False,
-                                     timeout=10.0,
+                                     timeout=0.3,
                                      inter_byte_timeout=0.02)
-
-        # except OSError:
-        #    print("device not found: " + device)
-        #    exit(1)
+            except FileNotFoundError as e:
+                print("serial device not found: " + self.device)
+                print('Exception:', str(e))
+                exit(1)
+            except SerialException:
+                print("serial device not found: " + self.device)
+                exit(1)
 
     def verbose_print(self, data):
         if self.verbose > 0:
@@ -86,7 +101,7 @@ class Rs485Handler:
                 Event().wait(0.001)
         self.sendTime2 = time.time_ns() - self.sendTime1
 
-    def receive_frame(self, end_time, start=b'~', end=b'\r'):
+    def receive_frame(self, end_time, start=b'~', end=b'\r',timeout=1):
         """ receives a frame defined by a start byte/prefix and end byte/suffix
         :param end_time:
             we expect receiving the last character before this timestamp
@@ -104,7 +119,7 @@ class Rs485Handler:
         while char != start:
             char = self.ser.read(1)
             if time.time() > end_time:
-                raise Exception('Timeout waiting for an answer.')
+                raise PylontechTimeoutException('Receive timeout exceeded ({} seconds)',timeout)
                 return None
         self.rcvTime1 = time.time_ns() - self.sendTime1  # just for Timeout handling
         # receive all until the trialing byte / end byte:
@@ -130,7 +145,7 @@ class Rs485Handler:
 
     def reconnect(self):
         """ force reconnect to serial port"""
-        self.ser.close();
+        self.ser.close()
         self.connect()
         self.clear_rx_buffer()
 
@@ -161,24 +176,25 @@ class PylontechRS485:
 
     def verbose(self, level=0):
         self.verbose = level
-        if level >10:
+        if level > 10:
             self.rs485.verbose = level - 10
         else:
             self.rs485.verbose = 0
 
-    def receive(self, timeout=5):
+    def receive(self, timeout=1):
         """
         try to receive a pylontech type packet from the RS-485 serial port.
         checks the packet checksum and returns the packet if the checksum is correct.
         :param timeout:
             timespan until packet has to be received
+            (usually the Battery responds in less than 1 second)
         :return:
             returns the frame or an empty list
         """
         start_byte = b'~'
         end_byte = b'\r'
         end_time = time.time() + timeout
-        data = self.rs485.receive_frame(end_time=end_time, start=start_byte, end=end_byte)
+        data = self.rs485.receive_frame(end_time=end_time, start=start_byte, end=end_byte, timeout=timeout)
         # check len
         if data is None:
             return None
@@ -212,7 +228,7 @@ class PylontechRS485:
             if chksum == chksum_from_pkg:
                 data2.append(package)
             else:
-                raise ValueError("crc error;  Soll<->ist: {:04x} --- {:04x}\nPacket:\n{}".format(chksum, chksum_from_pkg, package))
+                raise PylontechChecksumException("checksum Error ;  Soll<->ist: {:04x} --- {:04x}\nPacket:\n{}".format(chksum, chksum_from_pkg, package))
         return data2
 
     @staticmethod
