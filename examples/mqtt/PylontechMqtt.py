@@ -52,7 +52,7 @@ if args.mqtt_host is None:
     sys.exit(1)
 
 mqtt_settings = None
-if args.mqtt_user is None and args.mqtt_pass is None:
+if (args.mqtt_user is not None) and (args.mqtt_pass is not None):
     print("Connecting MQTT with username and password.")
     mqtt_settings = Settings.MQTT(
         host=args.mqtt_host.replace('\'', ''),
@@ -78,9 +78,12 @@ for sn in test_data['SerialNumbers']:
     temperature_count = test_data['AnaloglList'][number]['TemperatureCount']
     packs.append(MqttPackDevice(mqtt_settings, sn, number, cell_count, temperature_count))
     number = number + 1
+    time.sleep(2)
 
 for i in range(len(test_data['SerialNumbers'])):
     packs[i].update_analog_sensors(test_data['AnaloglList'][i])
+    packs[i].update_alarm_sensors(test_data['AlarmInfoList'][i])
+    packs[i].update_charge_management_sensors(test_data['ChargeDischargeManagementList'][i])
 
 exit(0)
 
