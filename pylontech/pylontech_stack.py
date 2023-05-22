@@ -125,7 +125,7 @@ class PylontechStack:
                 self.pylon.reconnect()
                 raise Exception('Pylontech update error') from e
 
-        self.pylonData['AnaloglList'] = analoglList
+        self.pylonData['AnalogList'] = analoglList
         self.pylonData['ChargeDischargeManagementList'] = chargeDischargeManagementList
         self.pylonData['AlarmInfoList'] = alarmInfoList
 
