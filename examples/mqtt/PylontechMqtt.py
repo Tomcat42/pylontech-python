@@ -37,6 +37,7 @@ def main(_pylon_stack, _mqtt_settings):
                 print("Pylontech update exception: ", err)
 
             data = _pylon_stack.pylonData
+            ha_stack.update_sensors(data)
             for i in range(len(data['SerialNumbers'])):
                 packs[i].update_analog_sensors(data['AnalogList'][i])
                 packs[i].update_alarm_sensors(data['AlarmInfoList'][i])
