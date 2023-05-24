@@ -1,0 +1,33 @@
+---
+configuration:
+  pylon:
+    name: Pylontech Serial Port
+    description: >-
+      Pylontech battery stack RS485 port. It can be a real serial port or a 
+      network connection to a network serial adapter.
+      Examples: "/dev/ttyUSB0", "socket://10.10.4.13:23", "rfc2217://10.10.4.13:23"
+  baud:
+    name: Pylontech Serial Baudrate
+    description: >-
+      Serial port baudrate 9600 or 115200.
+      Ignored in case of socket connection.
+  packs:
+    name: Pylontech Number Of Packs In Stack
+    description: >-
+      Number of battery packs in the stack.
+  mqtt_ip:
+    name: MQTT Address
+    description: >-
+      IP or Hostname of the MQTT serverr.
+  mqtt_port:
+    name: MQTT port
+    description: >-
+      MQTT network port.
+  username:
+    name: MQTT Username
+    description: >-
+      Username for MQTT login.
+  password:
+    name: MQTT Password
+    description: >-
+      Password for MQTT login.

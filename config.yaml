@@ -1,0 +1,28 @@
+name: "Pylontech MQTT"
+description: "My first real add-on!"
+version: "0.99.11"
+slug: "pylontech_mqtt"
+init: false
+uart: true
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+options:
+  pylon: "/dev/ttyUSB0"
+  baud: 115200
+  packs: 16
+  mqtt_ip: "192.168.1.2"
+  mqtt_port: "1883"
+  username: "user"
+  password: "pass"
+schema:
+  pylon: str
+  baud: int
+  packs: int
+  mqtt_ip: str
+  mqtt_port: str
+  username: str
+  password: str
