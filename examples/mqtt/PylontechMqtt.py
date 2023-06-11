@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import sys
 import time
 
@@ -28,13 +29,17 @@ def main(_pylon_stack, _mqtt_settings):
         time.sleep(2)
 
     print("Entering main loop")
+    except_main_counter=0
+    except_pylon_counter=0
     while 1:
         try:
             start_time = time.time()
             try:
                 _pylon_stack.update()
+                except_pylon_counter=0
             except Exception as err:
                 print("Pylontech update exception: ", err)
+                except_pylon_counter=except_pylon_counter+1
 
             data = _pylon_stack.pylonData
             ha_stack.update_sensors(data)
@@ -45,8 +50,12 @@ def main(_pylon_stack, _mqtt_settings):
                 sleep_time = (start_time + 30) - time.time()
                 if sleep_time > 0:
                     time.sleep(sleep_time)
+                except_main_counter=0
         except Exception as err:
             print("Main loop exception: ", err)
+            except_main_counter = except_main_counter + 1
+        if(except_pylon_counter>2) or (except_main_counter>2):
+            os.exit(1)
 
 
 if __name__ == "__main__":
