@@ -3,13 +3,13 @@ import datetime
 from enum import auto
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
-from samba.dcerpc.initshutdown import initshutdown
+#from samba.dcerpc.initshutdown import initshutdown
 from strenum import StrEnum
 
 from dataclasses import dataclass
 from typing import List
 from typing import Any, Optional, Union
-from pylontech_stack import PylontechStack
+from pylontech import PylontechStack
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback

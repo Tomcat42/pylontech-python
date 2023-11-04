@@ -6,7 +6,7 @@ RUN \
   apk add --no-cache \
     python3 py3-pip
 
-RUN pip3 install pyserial ha_mqtt_discoverable
+RUN pip3 install pyserial ha_mqtt_discoverable paho-mqtt homeassistant setuptools StrEnum
 
 # Python 3 HTTP Server serves the current working dir
 # So let's set it to our add-on persistent data directory.

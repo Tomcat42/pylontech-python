@@ -1,1 +1,5 @@
 pyserial>=3.5
+paho-mqtt~=1.6.1
+homeassistant~=2023.11.0
+setuptools~=68.2.0
+StrEnum~=0.4.15
