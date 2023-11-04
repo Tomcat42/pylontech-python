@@ -1,6 +1,6 @@
 pyserial~=3.5
 paho-mqtt~=1.6.1
-homeassistant~=2023.11.0
+homeassistant~=2023.10.5
 setuptools~=68.2.0
 StrEnum~=0.4.15
-pydantic~=1.10.12
+pydantic~=1.10.10
