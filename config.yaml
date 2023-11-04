@@ -1,6 +1,6 @@
 name: "Pylontech MQTT"
 description: "My first real add-on!"
-version: "0.99.15"
+version: "0.99.16"
 slug: "pylontech_mqtt"
 init: false
 uart: true
