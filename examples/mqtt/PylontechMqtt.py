@@ -27,7 +27,7 @@ def main(_pylon_stack, _mqtt_settings):
         temperature_count = data['AnalogList'][number]['TemperatureCount']
         packs.append(MqttPackDevice(_mqtt_settings, sn, number, cell_count, temperature_count))
         number = number + 1
-        time.sleep(2)
+        time.sleep(5)
 
     print("Entering main loop")
     except_main_counter=0
@@ -49,10 +49,11 @@ def main(_pylon_stack, _mqtt_settings):
                 packs[i].update_analog_sensors(data['AnalogList'][i])
                 packs[i].update_alarm_sensors(data['AlarmInfoList'][i])
                 packs[i].update_charge_management_sensors(data['ChargeDischargeManagementList'][i])
-                sleep_time = (start_time + 30) - time.time()
+                sleep_time = (start_time + 5) - time.time()
                 if sleep_time > 0:
                     time.sleep(sleep_time)
                 except_main_counter=0
+                start_time = time.time()
         except Exception as err:
             print("Main loop exception: ", err)
             except_main_counter = except_main_counter + 1
