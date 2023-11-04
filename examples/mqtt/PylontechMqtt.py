@@ -45,6 +45,7 @@ def main(_pylon_stack, _mqtt_settings):
             data = _pylon_stack.pylonData
             ha_stack.update_sensors(data)
             for i in range(len(data['SerialNumbers'])):
+                print("Update Pack: ", data['SerialNumbers'][i])
                 packs[i].update_analog_sensors(data['AnalogList'][i])
                 packs[i].update_alarm_sensors(data['AlarmInfoList'][i])
                 packs[i].update_charge_management_sensors(data['ChargeDischargeManagementList'][i])

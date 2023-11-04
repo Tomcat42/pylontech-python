@@ -64,5 +64,5 @@ class MqttStackDevice:
         for e in newData['Calculated'].keys():
             print(e)
             if e in self.haSensors['Calculated']:
-                print("set: ", e)
+                #print("set: ", e)
                 self.haSensors['Calculated'][e].set_state(newData['Calculated'][e])

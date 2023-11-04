@@ -239,7 +239,7 @@ class MqttPackDevice:
         for e in newData.keys():
             if e in self.haSensors['AnalogList']:
                 # single sensors here
-                print("set: ", e)
+                #print("set: ", e)
                 self.haSensors['AnalogList'][e].set_state(newData[e])
             else:
                 # sensor lists go here
@@ -254,7 +254,7 @@ class MqttPackDevice:
         for e in newData.keys():
             if e in self.haSensors['AlarmInfoList']:
                 # single sensors here
-                print("set: ", e)
+                #print("set: ", e)
                 self.haSensors['AlarmInfoList'][e].set_state(newData[e])
             else:
                 # sensor lists go here
@@ -270,5 +270,5 @@ class MqttPackDevice:
         for e in newData.keys():
             if e in self.haSensors['ChargeDischargeManagementList']:
                 # single sensors here
-                print("set: ", e)
+                #print("set: ", e)
                 self.haSensors['ChargeDischargeManagementList'][e].set_state(newData[e])
