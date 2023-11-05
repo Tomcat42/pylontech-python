@@ -21,13 +21,11 @@ def main(_pylon_stack, _mqtt_settings):
     packs = []
     number = 0
     for sn in data['SerialNumbers']:
-        print("Pylontech pack SN: ", sn)
         # get individual array sizes for each pack, if the stack uses different types of packs.
         cell_count = data['AnalogList'][number]['CellCount']
         temperature_count = data['AnalogList'][number]['TemperatureCount']
         packs.append(MqttPackDevice(_mqtt_settings, sn, number, cell_count, temperature_count))
         number = number + 1
-        time.sleep(5)
 
     print("Entering main loop")
     except_main_counter=0
