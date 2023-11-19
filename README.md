@@ -8,7 +8,6 @@ Functions to communicate to Pylontech Batteries using RS-485 serial communicatio
      It iterates over batteries and calculates overall results and combines battery results to lists.
      Some detail information from layer 2 might not be implemented in this layer.
 
-
 Installation using pypi.org:
 - run 'pip install pylontech-python'
 
@@ -33,4 +32,8 @@ an example to use pylontech-python:
   >>> x.battcount
   2
 
-A big "Thanks" to Daniel Schramm for his contibution!
+Application examples:
+
+A new example has been added to show how to publish data from a single stack
+and all its battery packs via MQTT to HomeAssistant.
+

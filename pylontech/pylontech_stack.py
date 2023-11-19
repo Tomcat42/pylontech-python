@@ -69,7 +69,7 @@ class PylontechStack:
                 raws = None
                 self.pylon.reconnect()
             except ValueError as e:
-                print("Pylontech RX exception ", e.args)
+                print("Pylontech RX ValueError exception ", e.args)
                 raws = None
                 self.pylon.reconnect()
 
@@ -125,7 +125,7 @@ class PylontechStack:
                 self.pylon.reconnect()
                 raise Exception('Pylontech update error') from e
 
-        self.pylonData['AnaloglList'] = analoglList
+        self.pylonData['AnalogList'] = analoglList
         self.pylonData['ChargeDischargeManagementList'] = chargeDischargeManagementList
         self.pylonData['AlarmInfoList'] = alarmInfoList
 
